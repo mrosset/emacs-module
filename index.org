@@ -1,15 +1,14 @@
 # -*- org-confirm-babel-evaluate: nil; after-save-hook: tangle-and-export; org-export-in-background: t; -*-
-#+OPTIONS: toc:nil num:3 H:4 ^:nil pri:t html-style:nil
+# org-html-htmlize-output-type css;
 
+#+OPTIONS: toc:t num:1 H:1 ^:nil pri:nil html-style:nil
+#+EMAIL: mike.rosset@gmail.com
 #+HTML_HEAD: <link href="https://fonts.googleapis.com/css?family=Cabin+Sketch" rel="stylesheet">
-#+HTML_HEAD: <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
 #+html_head: <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css">
 #+HTML_HEAD: <link href="layout.css" rel="stylesheet">
+#+HTML: <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
 
 #+TITLE: Writing Emacs modules with Go
-
-#+EMAIL: mike.rosset@gmail.com
-
 * Introduction
 :PROPERTIES:
 :HTML_CONTAINER_CLASS: container
@@ -25,7 +24,6 @@ We'll create a minimal Emacs C module, and then a Emacs module in Go.
 :PROPERTIES:
 :HTML_CONTAINER_CLASS: container
 :END:
-We'll start by writing a basic Emacs module in C.
 
 First we'll create a top level directory and then ~cd~ into that directory.
 #+BEGIN_SRC shell
@@ -77,6 +75,7 @@ int plugin_is_GPL_compatible;
 
 This will be the function that be called by Emacs once we have registered it.
 Then function
+
 #+BEGIN_SRC C :main no :tangle src/cmodule.c
 static emacs_value
 Fcmodule_glibc_version (emacs_env *env, int nargs, emacs_value args[], void *data)
@@ -149,6 +148,3 @@ To test our module we'll start Emacs in batch mode then call our custom function
 
 #+RESULTS:
 : 0.1
-
-
-#+HTML: <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
