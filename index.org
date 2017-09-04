@@ -1,5 +1,5 @@
 # -*- org-confirm-babel-evaluate: nil; after-save-hook: tangle-and-export; org-export-in-background: t; -*-
-#+OPTIONS: toc:nil num:3 H:4 ^:nil pri:t html-style:t
+#+OPTIONS: toc:nil num:3 H:4 ^:nil pri:t html-style:nil
 
 #+HTML_HEAD: <link href="https://fonts.googleapis.com/css?family=Cabin+Sketch" rel="stylesheet">
 #+HTML_HEAD: <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
