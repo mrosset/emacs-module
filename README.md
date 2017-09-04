@@ -1,17 +1,3 @@
-<div id="table-of-contents">
-<h2>Table of Contents</h2>
-<div id="text-table-of-contents">
-<ul>
-<li><a href="#orgfc681ec">1. Minimal Emacs module in C</a>
-<ul>
-<li><a href="#orgf4de443">1.1. src/cmodule.c</a></li>
-<li><a href="#org86d5c95">1.2. Compiling the module</a></li>
-<li><a href="#orgaf9f99e">1.3. Using our C module with Emacs.</a></li>
-</ul>
-</li>
-</ul>
-</div>
-</div>
 As of Emacs version `25.1` Emacs is able to load dynamic modules. And as of
 version `1.5` Go supports building packages as dynamice shared libraries.
 
@@ -19,8 +5,6 @@ This means in theory we can write Emacs elisp modules in pure Go.
 
 We'll create a minimal Emacs C module, and then a Emacs module in Go.
 
-
-<a id="orgfc681ec"></a>
 
 # Minimal Emacs module in C
 
@@ -50,8 +34,6 @@ Create the src directory
 
     mkdir src
 
-
-<a id="orgf4de443"></a>
 
 ## src/cmodule.c
 
@@ -145,8 +127,6 @@ funcall know that we are passing one argument.
     }
 
 
-<a id="org86d5c95"></a>
-
 ## Compiling the module
 
 Create a lib directory to hold our shared libraries.
@@ -157,8 +137,6 @@ Now compile `cmodule.c` as a shared C library.
 
     gcc -I emacs-25.2/src -fPIC -shared src/cmodule.c -o lib/cmodule.so
 
-
-<a id="orgaf9f99e"></a>
 
 ## Using our C module with Emacs.
 

@@ -1,2 +1,3 @@
-# -*- org-confirm-babel-evaluate: nil; after-save-hook: tangle-and-export; org-export-in-background: t; -*-
+# -*- org-confirm-babel-evaluate: nil; after-save-hook: org-md-export-to-markdown; org-export-in-background: t; -*-
+#+OPTIONS: toc:nil num:3 H:4 ^:nil pri:t
 #+INCLUDE: index.org
