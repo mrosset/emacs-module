@@ -98,8 +98,8 @@ anything else will not work. Then we get a quoted symbol for the elisp provide f
 
 
 We then create an arguements array containing our feature symbol. And have the
-emacs enviroment call the provides function with our agruement. We also let
-funcall know that we are passing one arguement.
+Emacs environment call the provides function with our agruement. We also let
+funcall know that we are passing one argument.
 
 #+BEGIN_SRC C :main no :tangle src/cmodule.c
   emacs_value pargs[] = { Qfeat };
@@ -132,3 +132,4 @@ To test our module we'll start Emacs in batch mode then call our custom function
 #+END_SRC
 
 #+RESULTS:
+: 0.1

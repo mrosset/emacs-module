@@ -1,0 +1,2 @@
+# -*- org-confirm-babel-evaluate: nil; after-save-hook: tangle-and-export; org-export-in-background: t; -*-
+#+INCLUDE: index.org
