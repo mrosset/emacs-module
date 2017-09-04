@@ -1,6 +1,19 @@
 # -*- org-confirm-babel-evaluate: nil; after-save-hook: tangle-and-export; org-export-in-background: t; -*-
+#+OPTIONS: toc:nil num:3 H:4 ^:nil pri:t
 
-#+TITLE: Writing Emacs modules useing the go programming language.
+#+HTML_HEAD: <link href="https://fonts.googleapis.com/css?family=Cabin+Sketch" rel="stylesheet">
+#+HTML_HEAD:  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css">
+#+HTML:  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
+#+HTML: <style> h1, h2, h3, h4 { font-family: 'Cabin Sketch', cursive; } </style>
+
+#+TITLE: Writing Emacs modules with Go
+
+#+EMAIL: mike.rosset@gmail.com
+
+* Introduction
+:PROPERTIES:
+:HTML_CONTAINER_CLASS: container
+:END:
 As of Emacs version ~25.1~ Emacs is able to load dynamic modules. And as of
 version ~1.5~ Go supports building packages as dynamice shared libraries.
 
@@ -8,7 +21,12 @@ This means in theory we can write Emacs elisp modules in pure Go.
 
 We'll create a minimal Emacs C module, and then a Emacs module in Go.
 
+some data here
+
 * Minimal Emacs module in C
+:PROPERTIES:
+:HTML_CONTAINER_CLASS: container
+:END:
 We'll start by writing a basic Emacs module in C.
 
 First we'll create a top level directory and then ~cd~ into that directory.
