@@ -1,10 +1,10 @@
 # -*- org-confirm-babel-evaluate: nil; after-save-hook: tangle-and-export; org-export-in-background: t; -*-
-#+OPTIONS: toc:nil num:3 H:4 ^:nil pri:t
+#+OPTIONS: toc:nil num:3 H:4 ^:nil pri:t html-style:t
 
 #+HTML_HEAD: <link href="https://fonts.googleapis.com/css?family=Cabin+Sketch" rel="stylesheet">
-#+HTML_HEAD:  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css">
-#+HTML:  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
-#+HTML: <style> h1, h2, h3, h4 { font-family: 'Cabin Sketch', cursive; } </style>
+#+HTML_HEAD: <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+#+html_head: <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css">
+#+HTML_HEAD: <link href="layout.css" rel="stylesheet">
 
 #+TITLE: Writing Emacs modules with Go
 
@@ -20,8 +20,6 @@ version ~1.5~ Go supports building packages as dynamice shared libraries.
 This means in theory we can write Emacs elisp modules in pure Go.
 
 We'll create a minimal Emacs C module, and then a Emacs module in Go.
-
-some data here
 
 * Minimal Emacs module in C
 :PROPERTIES:
@@ -106,7 +104,7 @@ First we get the Emacs environment from the Emacs run-time.
 #+END_SRC
 
 Then we convert our feature string into a qouted lisp symbol. The nameing is important
-our module is cmodule.so so the feature symbol *must* be named ~cmodule~,
+our module is ~cmodule.so~ so the feature symbol *must* be named ~cmodule~,
 anything else will not work. Then we get a quoted symbol for the elisp provide function.
 
 #+BEGIN_SRC C -p :main no :tangle src/cmodule.c
@@ -151,3 +149,6 @@ To test our module we'll start Emacs in batch mode then call our custom function
 
 #+RESULTS:
 : 0.1
+
+
+#+HTML: <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
