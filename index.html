@@ -3,17 +3,17 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2017-09-05 Tue 11:53 -->
+<!-- 2017-09-05 Tue 12:22 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Writing Emacs modules with Go</title>
 <meta name="generator" content="Org mode" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/ >
 <link rel="stylesheet" media="screen" href="https://fontlibrary.org/face/go-mono" type="text/css"/>
-<link href="https://fonts.googleapis.com/css?family=Cabin+Sketch" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css">
-<link href="layout.css" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
+<link href="https://fonts.googleapis.com/css?family=Cabin+Sketch" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css"/>
+<link href="layout.css" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"/>
 <script type="text/javascript">
 /*
 @licstart  The following is the entire license notice for the
@@ -68,19 +68,19 @@ for the JavaScript code in this tag.
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#org071ea55">1. Introduction</a></li>
-<li><a href="#orge56049c">2. Minimal Emacs module in C</a>
+<li><a href="#org28878f4">1. Introduction</a></li>
+<li><a href="#org27802cb">2. Minimal Emacs module in C</a>
 <ul>
-<li><a href="#org974b625">2.1. <code>src/cmodule.c</code></a>
+<li><a href="#orgad157d8">2.1. <code>src/cmodule.c</code></a>
 <ul>
-<li><a href="#orgbfccb21">2.1.1. <code>src/module.c</code> Breakdown</a></li>
+<li><a href="#orgd607906">2.1.1. <code>src/module.c</code> Breakdown</a></li>
 </ul>
 </li>
-<li><a href="#org701291b">2.2. Compiling the module</a></li>
-<li><a href="#org47481dd">2.3. Using the C module with Emacs.</a></li>
+<li><a href="#org291c582">2.2. Compiling the module</a></li>
+<li><a href="#orgbb192c9">2.3. Using the C module with Emacs.</a></li>
 </ul>
 </li>
-<li><a href="#org4437ee1">3. Another section</a></li>
+<li><a href="#org8344fde">3. Another section</a></li>
 </ul>
 </div>
 </div>
@@ -95,8 +95,8 @@ This page is generated using <code>(org-html-export-to-html)</code> if you prefe
 <code>org-mode</code> you can get the org file from<a href="https://raw.githubusercontent.com/mrosset/emacs-module/master/index.org"> GitHub</a>.
 </p>
 
-<div id="outline-container-org071ea55" class="outline-2 container">
-<h2 id="org071ea55"><span class="section-number-2">1</span> Introduction</h2>
+<div id="outline-container-org28878f4" class="outline-2 container">
+<h2 id="org28878f4"><span class="section-number-2">1</span> Introduction</h2>
 <div class="outline-text-2" id="text-1">
 <p>
 As of Emacs version <code>25.1</code> Emacs is able to load dynamic modules. And as of
@@ -109,8 +109,8 @@ help when we write our Go module.
 </div>
 </div>
 
-<div id="outline-container-orge56049c" class="outline-2 container">
-<h2 id="orge56049c"><span class="section-number-2">2</span> Minimal Emacs module in C</h2>
+<div id="outline-container-org27802cb" class="outline-2 container">
+<h2 id="org27802cb"><span class="section-number-2">2</span> Minimal Emacs module in C</h2>
 <div class="outline-text-2" id="text-2">
 <p>
 First create a top level directory to house our project . I like to create my
@@ -157,8 +157,8 @@ Create the src directory
 </div>
 </div>
 
-<div id="outline-container-org974b625" class="outline-3">
-<h3 id="org974b625"><span class="section-number-3">2.1</span> <code>src/cmodule.c</code></h3>
+<div id="outline-container-orgad157d8" class="outline-3">
+<h3 id="orgad157d8"><span class="section-number-3">2.1</span> <code>src/cmodule.c</code></h3>
 <div class="outline-text-3" id="text-2-1">
 <p>
 If you are using <code>org-mode</code> you can generate this file automatically with <code>C-c C-v
@@ -206,8 +206,8 @@ printf<span class="org-rainbow-delimiters-depth-2">(</span><span class="org-stri
 </div>
 </div>
 
-<div id="outline-container-orgbfccb21" class="outline-4">
-<h4 id="orgbfccb21"><span class="section-number-4">2.1.1</span> <code>src/module.c</code> Breakdown</h4>
+<div id="outline-container-orgd607906" class="outline-4">
+<h4 id="orgd607906"><span class="section-number-4">2.1.1</span> <code>src/module.c</code> Breakdown</h4>
 <div class="outline-text-4" id="text-2-1-1">
 <p>
 First we include <code>emacs-module.h</code> header file. We'll need this for the Emacs
@@ -308,8 +308,8 @@ env-&gt;funcall <span class="org-rainbow-delimiters-depth-1">(</span>env, Qprovi
 </div>
 </div>
 
-<div id="outline-container-org701291b" class="outline-3">
-<h3 id="org701291b"><span class="section-number-3">2.2</span> Compiling the module</h3>
+<div id="outline-container-org291c582" class="outline-3">
+<h3 id="org291c582"><span class="section-number-3">2.2</span> Compiling the module</h3>
 <div class="outline-text-3" id="text-2-2">
 <p>
 Create a lib directory to hold our shared libraries.
@@ -329,8 +329,8 @@ Now compile <code>cmodule.c</code> as a shared C library.
 </div>
 </div>
 
-<div id="outline-container-org47481dd" class="outline-3">
-<h3 id="org47481dd"><span class="section-number-3">2.3</span> Using the C module with Emacs.</h3>
+<div id="outline-container-orgbb192c9" class="outline-3">
+<h3 id="orgbb192c9"><span class="section-number-3">2.3</span> Using the C module with Emacs.</h3>
 <div class="outline-text-3" id="text-2-3">
 <p>
 To test our module we'll start Emacs in batch mode then call our custom function.
@@ -349,12 +349,12 @@ To test our module we'll start Emacs in batch mode then call our custom function
 </div>
 
 
-<div id="outline-container-org4437ee1" class="outline-2">
-<h2 id="org4437ee1"><span class="section-number-2">3</span> Another section</h2>
+<div id="outline-container-org8344fde" class="outline-2">
+<h2 id="org8344fde"><span class="section-number-2">3</span> Another section</h2>
 </div>
 </div>
 <div id="postamble" class="status">
-<p class="date">Created: 2017-09-05 Tue 11:53</p>
+<p class="date">Created: 2017-09-05 Tue 12:22</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>

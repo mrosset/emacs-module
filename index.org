@@ -4,12 +4,12 @@
 #+EMAIL: mike.rosset@gmail.com
 #+OPTIONS: toc:t num:3 H:3 ^:nil pri:nil html-style:nil
 
-#+HTML_HEAD: <meta name="viewport" content="width=device-width, initial-scale=1.0">
+#+HTML_HEAD: <meta name="viewport" content="width=device-width, initial-scale=1.0"/ >
 #+HTML_HEAD: <link rel="stylesheet" media="screen" href="https://fontlibrary.org/face/go-mono" type="text/css"/>
-#+HTML_HEAD: <link href="https://fonts.googleapis.com/css?family=Cabin+Sketch" rel="stylesheet">
-#+HTML_HEAD: <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css">
-#+HTML_HEAD: <link href="layout.css" rel="stylesheet">
-#+HTML_HEAD: <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
+#+HTML_HEAD: <link href="https://fonts.googleapis.com/css?family=Cabin+Sketch" rel="stylesheet"/>
+#+HTML_HEAD: <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css"/>
+#+HTML_HEAD: <link href="layout.css" rel="stylesheet"/>
+#+HTML_HEAD: <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"/>
 
 #+TITLE: Writing Emacs modules with Go
 
