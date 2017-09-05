@@ -4,9 +4,6 @@
     grid-template-columns: 1fr 3fr;
     grid-template-areas: "sidebar header"
                            "sidebar content"
-                           "sidebar content"
-                           "sidebar content"
-                           "sidebar content"
                            "sidebar content";
     grid-gap: 15x;
   }
@@ -70,8 +67,8 @@ pre {
 code {
   background-color: rgb(238, 238, 238);
   border: 1px solid rgb(187, 187, 187);
-  padding: 0px 0px;
-  border-radius: 3px;
+  padding: 0px;
+  border-radius: 1px;
   color: #7F5AB6;
 }
 

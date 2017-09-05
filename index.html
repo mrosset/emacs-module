@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2017-09-05 Tue 12:22 -->
+<!-- 2017-09-05 Tue 13:44 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Writing Emacs modules with Go</title>
@@ -68,35 +68,27 @@ for the JavaScript code in this tag.
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#org28878f4">1. Introduction</a></li>
-<li><a href="#org27802cb">2. Minimal Emacs module in C</a>
+<li><a href="#org544ebd6">1. Introduction</a>
 <ul>
-<li><a href="#orgad157d8">2.1. <code>src/cmodule.c</code></a>
+<li><a href="#orgca6052b">1.1. Minimal Emacs module in C</a>
 <ul>
-<li><a href="#orgd607906">2.1.1. <code>src/module.c</code> Breakdown</a></li>
+<li><a href="#org2a4965c">1.1.1. <code>src/cmodule.c</code></a></li>
+<li><a href="#orgaad4126">1.1.2. Compiling the module</a></li>
+<li><a href="#org9e9e0b1">1.1.3. Using C module with Emacs.</a></li>
 </ul>
 </li>
-<li><a href="#org291c582">2.2. Compiling the module</a></li>
-<li><a href="#orgbb192c9">2.3. Using the C module with Emacs.</a></li>
+<li><a href="#org626198c">1.2. Automatically</a></li>
 </ul>
 </li>
-<li><a href="#org8344fde">3. Another section</a></li>
 </ul>
 </div>
 </div>
-
-<div class="figure">
-<p><img src="img/org-mode-unicorn-logo_2017-09-05_10-16-22.png" alt="org-mode-unicorn-logo_2017-09-05_10-16-22.png" />
-</p>
-</div>
-
-<p>
-This page is generated using <code>(org-html-export-to-html)</code> if you prefer using
+<p width="40px">
+<img src="img/org-mode-unicorn-logo_2017-09-05_10-16-22.png" alt="org-mode-unicorn-logo_2017-09-05_10-16-22.png" width="40px" />This page is generated using <code>(org-html-export-to-html)</code> if you prefer using
 <code>org-mode</code> you can get the org file from<a href="https://raw.githubusercontent.com/mrosset/emacs-module/master/index.org"> GitHub</a>.
 </p>
-
-<div id="outline-container-org28878f4" class="outline-2 container">
-<h2 id="org28878f4"><span class="section-number-2">1</span> Introduction</h2>
+<div id="outline-container-org544ebd6" class="outline-2 container">
+<h2 id="org544ebd6"><span class="section-number-2">1</span> Introduction</h2>
 <div class="outline-text-2" id="text-1">
 <p>
 As of Emacs version <code>25.1</code> Emacs is able to load dynamic modules. And as of
@@ -107,11 +99,9 @@ is not a huge difference between the two. But understanding the C module well
 help when we write our Go module.
 </p>
 </div>
-</div>
-
-<div id="outline-container-org27802cb" class="outline-2 container">
-<h2 id="org27802cb"><span class="section-number-2">2</span> Minimal Emacs module in C</h2>
-<div class="outline-text-2" id="text-2">
+<div id="outline-container-orgca6052b" class="outline-3">
+<h3 id="orgca6052b"><span class="section-number-3">1.1</span> Minimal Emacs module in C</h3>
+<div class="outline-text-3" id="text-1-1">
 <p>
 First create a top level directory to house our project . I like to create my
 projects in <code>$HOME/src</code> pick which ever location suits you best. Once we
@@ -157,9 +147,9 @@ Create the src directory
 </div>
 </div>
 
-<div id="outline-container-orgad157d8" class="outline-3">
-<h3 id="orgad157d8"><span class="section-number-3">2.1</span> <code>src/cmodule.c</code></h3>
-<div class="outline-text-3" id="text-2-1">
+<div id="outline-container-org2a4965c" class="outline-4">
+<h4 id="org2a4965c"><span class="section-number-4">1.1.1</span> <code>src/cmodule.c</code></h4>
+<div class="outline-text-4" id="text-1-1-1">
 <p>
 If you are using <code>org-mode</code> you can generate this file automatically with <code>C-c C-v
 t</code> or <code>M-x org-babel-tangle</code> .
@@ -206,9 +196,7 @@ printf<span class="org-rainbow-delimiters-depth-2">(</span><span class="org-stri
 </div>
 </div>
 
-<div id="outline-container-orgd607906" class="outline-4">
-<h4 id="orgd607906"><span class="section-number-4">2.1.1</span> <code>src/module.c</code> Breakdown</h4>
-<div class="outline-text-4" id="text-2-1-1">
+<ul class="org-ul"><li><a id="orgbe74f75"></a>C Breakdown<br /><div class="outline-text-5" id="text-orgbe74f75">
 <p>
 First we include <code>emacs-module.h</code> header file. We'll need this for the Emacs
 declaration types.
@@ -231,10 +219,10 @@ Emacs will not load the module.
 </div>
 
 <p>
-Next is the actual C function that we plan to call from Emacs. Our function is
-pretty simple all it does is take a C string literal called <code>CMOD_VERSION</code> and
-passes it to Emacs <code>(message)</code> function. It's pretty much the same as if we
-called <code>(message "0.1")</code>. And the end result will display 0.1 in the message
+Next is the C function that we plan to call from Emacs. Our function is
+simple, all it does is take a C string literal called <code>CMOD_VERSION</code> and
+passes it to Emacs <code>(message)</code> function. It's the same as if we called
+<code>(message "0.1")</code>. And the end result will display 0.1 in the message
 window and buffer.
 </p>
 
@@ -304,13 +292,12 @@ env-&gt;funcall <span class="org-rainbow-delimiters-depth-1">(</span>env, Qprovi
 <span class="org-rainbow-delimiters-unmatched">}</span>
 </pre>
 </div>
-</div>
-</div>
+</div></li></ul>
 </div>
 
-<div id="outline-container-org291c582" class="outline-3">
-<h3 id="org291c582"><span class="section-number-3">2.2</span> Compiling the module</h3>
-<div class="outline-text-3" id="text-2-2">
+<div id="outline-container-orgaad4126" class="outline-4">
+<h4 id="orgaad4126"><span class="section-number-4">1.1.2</span> Compiling the module</h4>
+<div class="outline-text-4" id="text-1-1-2">
 <p>
 Create a lib directory to hold our shared libraries.
 </p>
@@ -329,9 +316,9 @@ Now compile <code>cmodule.c</code> as a shared C library.
 </div>
 </div>
 
-<div id="outline-container-orgbb192c9" class="outline-3">
-<h3 id="orgbb192c9"><span class="section-number-3">2.3</span> Using the C module with Emacs.</h3>
-<div class="outline-text-3" id="text-2-3">
+<div id="outline-container-org9e9e0b1" class="outline-4">
+<h4 id="org9e9e0b1"><span class="section-number-4">1.1.3</span> Using C module with Emacs.</h4>
+<div class="outline-text-4" id="text-1-1-3">
 <p>
 To test our module we'll start Emacs in batch mode then call our custom function.
 </p>
@@ -348,13 +335,23 @@ To test our module we'll start Emacs in batch mode then call our custom function
 </div>
 </div>
 
+<div id="outline-container-org626198c" class="outline-3">
+<h3 id="org626198c"><span class="section-number-3">1.2</span> Automatically</h3>
+<div class="outline-text-3" id="text-1-2">
+<p>
+This whole guide can be run without any manual input using.
+</p>
 
-<div id="outline-container-org8344fde" class="outline-2">
-<h2 id="org8344fde"><span class="section-number-2">3</span> Another section</h2>
+<pre class="example">
+(org-babel-tangle)
+(org-babel-execute-buffer)
+</pre>
+</div>
+</div>
 </div>
 </div>
 <div id="postamble" class="status">
-<p class="date">Created: 2017-09-05 Tue 12:22</p>
+<p class="date">Created: 2017-09-05 Tue 13:44</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>
