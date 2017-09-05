@@ -1,12 +1,15 @@
 # -*- org-confirm-babel-evaluate: nil; after-save-hook: tangle-and-export; org-export-in-background: t; -*-
 # org-html-htmlize-output-type css;
 
-#+OPTIONS: toc:t num:1 H:1 ^:nil pri:nil html-style:nil
 #+EMAIL: mike.rosset@gmail.com
+#+OPTIONS: toc:t num:1 H:1 ^:nil pri:nil html-style:nil
+
+#+HTML_HEAD: <meta name="viewport" content="width=device-width, initial-scale=1.0">
+#+HTML_HEAD: <link rel="stylesheet" media="screen" href="https://fontlibrary.org/face/go-mono" type="text/css"/>
 #+HTML_HEAD: <link href="https://fonts.googleapis.com/css?family=Cabin+Sketch" rel="stylesheet">
-#+html_head: <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css">
+#+HTML_HEAD: <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css">
 #+HTML_HEAD: <link href="layout.css" rel="stylesheet">
-#+HTML: <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
+#+HTML_HEAD: <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
 
 #+TITLE: Writing Emacs modules with Go
 * Introduction
@@ -77,14 +80,15 @@ This will be the function that be called by Emacs once we have registered it.
 Then function
 
 #+BEGIN_SRC C :main no :tangle src/cmodule.c
-static emacs_value
-Fcmodule_glibc_version (emacs_env *env, int nargs, emacs_value args[], void *data)
-{
-emacs_value message = env->intern(env, "message");
-emacs_value *string = env->make_string(env, CMOD_VERSION, 3);
-env->funcall(env, message, 1, CMOD_VERSION);
-return string;
-}
+  static emacs_value
+  Fcmodule_glibc_version (emacs_env * env, int nargs,
+        emacs_value args[], void *data)
+  {
+    emacs_value message = env->intern (env, "message");
+    emacs_value *string = env->make_string (env, CMOD_VERSION, 3);
+    env->funcall (env, message, 1, CMOD_VERSION);
+    return string;
+  }
 #+END_SRC
 
 This function is the entry point of our module and is run when the module is first
@@ -99,18 +103,17 @@ through the C interface. If not Emacs will error with feature not provided.
 
 First we get the Emacs environment from the Emacs run-time.
 #+BEGIN_SRC C -p :main no :tangle src/cmodule.c
-  emacs_env *env = ert->get_environment(ert);
+  emacs_env *env = ert->get_environment (ert);
 #+END_SRC
 
 Then we convert our feature string into a qouted lisp symbol. The nameing is important
 our module is ~cmodule.so~ so the feature symbol *must* be named ~cmodule~,
 anything else will not work. Then we get a quoted symbol for the elisp provide function.
 
-#+BEGIN_SRC C -p :main no :tangle src/cmodule.c
+#+BEGIN_SRC C :main no :tangle src/cmodule.c
   emacs_value Qfeat = env->intern (env, "cmodule");
   emacs_value Qprovide = env->intern (env, "provide");
 #+END_SRC
-
 
 We then create an arguements array containing our feature symbol. And have the
 Emacs environment call the provides function with our agruement. We also let
@@ -142,9 +145,12 @@ gcc -I emacs-25.2/src -fPIC -shared src/cmodule.c -o lib/cmodule.so
 
 ** Using our C module with Emacs.
 To test our module we'll start Emacs in batch mode then call our custom function.
-#+BEGIN_SRC shell :exports both -p
-  emacs -Q -L ./lib -batch --eval "(require 'cmodule)"
+#+BEGIN_SRC shell :exports both
+emacs -Q -L ./lib -batch --eval "(require 'cmodule)"
 #+END_SRC
 
 #+RESULTS:
 : 0.1
+
+
+* Another section
