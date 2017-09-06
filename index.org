@@ -2,7 +2,7 @@
 # org-html-htmlize-output-type css;
 
 #+EMAIL: mike.rosset@gmail.com
-#+OPTIONS: toc:t num:3 H:3 ^:nil pri:nil html-style:nil
+#+OPTIONS: toc:t num:5 H:5 ^:nil pri:nil html-style:nil
 
 #+HTML_HEAD: <meta name="viewport" content="width=device-width, initial-scale=1.0"/ >
 #+HTML_HEAD: <link rel="stylesheet" media="screen" href="https://fontlibrary.org/face/go-mono" type="text/css"/>
@@ -60,7 +60,7 @@ Create the src directory
 mkdir src
 #+END_SRC
 
-*** ~src/cmodule.c~
+** ~src/cmodule.c~
 
 If you are using ~org-mode~ you can generate this file automatically with ~C-c C-v
 t~ or ~M-x org-babel-tangle~ .
@@ -69,7 +69,7 @@ Here is the complete C file. In the next section we'll do a line by line breakdo
 of what it does.
 #+INCLUDE: src/cmodule.c src C
 
-**** C Breakdown
+** C Breakdown
 First we include ~emacs-module.h~ header file. We'll need this for the Emacs
 declaration types.
 #+BEGIN_SRC C :main no :tangle src/cmodule.c
@@ -90,20 +90,15 @@ int plugin_is_GPL_compatible;
 #+RESULTS:
 
 Next is the C function that we plan to call from Emacs. Our function is
-simple, all it does is take a C string literal called ~CMOD_VERSION~ and
-passes it to Emacs ~(message)~ function. It's the same as if we called
-~(message "0.1")~. And the end result will display 0.1 in the message
-window and buffer.
+simple, all it does is take a C string literal called ~CMOD_VERSION~. Creates an
+Emacs strings and then returns it.
 
 #+BEGIN_SRC C :main no :tangle src/cmodule.c
   static emacs_value
-  Fcmodule_version (emacs_env * env, int nargs,
-        emacs_value args[], void *data)
+  Fcmodule_version (emacs_env * env, ptrdiff_t nargs, emacs_value args[],
+        void *data)
   {
-    emacs_value message = env->intern (env, "message");
-    emacs_value *string = env->make_string (env, CMOD_VERSION, 3);
-    env->funcall (env, message, 1, CMOD_VERSION);
-    return string;
+    return env->make_string (env, CMOD_VERSION, 3);
   }
 #+END_SRC
 
@@ -112,8 +107,8 @@ window and buffer.
 Next is the entry point of our module and is run when the module is first
 loaded by Emacs.
 #+BEGIN_SRC C :main no :tangle src/cmodule.c
-  extern int
-  emacs_module_init (struct emacs_runtime *ert)
+  extern
+  int emacs_module_init (struct emacs_runtime *ert)
   {
 #+END_SRC
 
@@ -124,7 +119,7 @@ through the C interface. If not Emacs will error with feature not provided.
 
 First we get the Emacs environment from the Emacs run-time.
 #+BEGIN_SRC C -p :main no :tangle src/cmodule.c
-  emacs_env *env = ert->get_environment (ert);
+emacs_env *env = ert->get_environment (ert);
 #+END_SRC
 
 #+RESULTS:
@@ -134,8 +129,8 @@ our module will be compiled to ~cmodule.so~ so the feature symbol *must* be name
 anything else will not work. Then we get a quoted symbol for the elisp provide function.
 
 #+BEGIN_SRC C :main no :tangle src/cmodule.c
-  emacs_value Qfeat = env->intern (env, "cmodule");
-  emacs_value Qprovide = env->intern (env, "provide");
+emacs_value Qfeat = env->intern (env, "cmodule");
+emacs_value Qprovide = env->intern (env, "provide");
 #+END_SRC
 
 #+RESULTS:
@@ -144,21 +139,30 @@ We then create an arguements array containing our feature symbol. And have the
 Emacs environment call the provides function with our agruement.
 
 #+BEGIN_SRC C :main no :tangle src/cmodule.c
-  emacs_value pargs[] = { Qfeat };
-  env->funcall (env, Qprovide, 1, pargs);
+emacs_value pargs[] = { Qfeat };
+env->funcall (env, Qprovide, 1, pargs);
 #+END_SRC
 
 #+RESULTS:
 
+Next we declare our function and then use Emacs fset to define it. In short we
+are telling Emacs that whenever we call ~(cmodule-verion)~ to execute
+the ~Fcmodule_version~ C function.
+
 #+BEGIN_SRC C :main no :tangle src/cmodule.c
-  printf("%s\n", CMOD_VERSION);
-  return 0;
+emacs_value fn = env->make_function (env, 0, 0, Fcmodule_version,
+                 "Returns cmodule version", NULL);
+
+emacs_value Qfset = env->intern (env, "fset");
+emacs_value Qsym = env->intern (env, "cmodule-version");
+
+emacs_value fargs[] = { Qsym, fn };
+env->funcall(env, Qfset, 2, fargs);
+return 0;
 }
 #+END_SRC
 
-#+RESULTS:
-
-*** Compiling the module
+** Compiling the module
 Create a lib directory to hold our shared libraries.
 #+BEGIN_SRC shell :results silent
 mkdir lib
@@ -169,16 +173,34 @@ Now compile ~cmodule.c~ as a shared C library.
 gcc -I emacs-25.2/src -fPIC -shared src/cmodule.c -o lib/cmodule.so
 #+END_SRC
 
-*** Using C module with Emacs.
+** Using C module with Emacs.
 To test our module we'll start Emacs in batch mode then call our custom function.
 #+BEGIN_SRC shell :exports both
-emacs -Q -L ./lib -batch --eval "(require 'cmodule)"
+emacs -Q -L ./lib -batch --eval "(require 'cmodule)" --eval "(cmodule-version)"
 #+END_SRC
 
 #+RESULTS:
-: 0.1
+0.1
 
-** Automatically
+** C summary
+Writing a Emacs module in C is straight forward. These are the basic things you
+need to create a Emacs module.
+
+1. emacs-module.h
+2. plugin_is_GPL_compatibe symbol
+3. emacs_module_init entry point
+4. Provision module feature within Emacs
+5. fset function within Emacs
+
+This C example was put together from [[http://diobla.info/blog-archive/modules-tut.html][diobla.info blog]] . He does a good job of
+breaking things down, and has some helper functions for binding and
+provisioning.
+
+* Automation
+:PROPERTIES:
+:HTML_CONTAINER_CLASS: container
+:END:
+Knowing what we need, we can now create our module in Go.
 This whole guide can be run without any manual input using.
 
 #+BEGIN_EXAMPLE emacs-lisp

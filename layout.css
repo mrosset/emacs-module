@@ -2,7 +2,8 @@
   #content {
     display: grid;
     grid-template-columns: 1fr 3fr;
-    grid-template-areas: "sidebar header"
+    grid-template-areas: "nav header"
+                           "sidebar content"
                            "sidebar content"
                            "sidebar content";
     grid-gap: 15x;
@@ -30,8 +31,12 @@ body {
   width: 95%;
 }
 
-#table-of-contents {
+.sidebar {
   grid-area: sidebar;
+}
+
+#table-of-contents {
+  grid-area: nav;
 }
 
 h1, h2, h3, h4 {

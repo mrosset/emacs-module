@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2017-09-05 Tue 13:44 -->
+<!-- 2017-09-05 Tue 18:09 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Writing Emacs modules with Go</title>
@@ -68,18 +68,17 @@ for the JavaScript code in this tag.
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#org544ebd6">1. Introduction</a>
+<li><a href="#org25ac26c">1. Introduction</a>
 <ul>
-<li><a href="#orgca6052b">1.1. Minimal Emacs module in C</a>
-<ul>
-<li><a href="#org2a4965c">1.1.1. <code>src/cmodule.c</code></a></li>
-<li><a href="#orgaad4126">1.1.2. Compiling the module</a></li>
-<li><a href="#org9e9e0b1">1.1.3. Using C module with Emacs.</a></li>
+<li><a href="#orgb0e416a">1.1. Minimal Emacs module in C</a></li>
+<li><a href="#org344d8dc">1.2. <code>src/cmodule.c</code></a></li>
+<li><a href="#orgbc8d83b">1.3. C Breakdown</a></li>
+<li><a href="#orgd3b7036">1.4. Compiling the module</a></li>
+<li><a href="#org8abd1cc">1.5. Using C module with Emacs.</a></li>
+<li><a href="#orgbc11e38">1.6. C summary</a></li>
 </ul>
 </li>
-<li><a href="#org626198c">1.2. Automatically</a></li>
-</ul>
-</li>
+<li><a href="#orgbd3867c">2. Automation</a></li>
 </ul>
 </div>
 </div>
@@ -87,8 +86,8 @@ for the JavaScript code in this tag.
 <img src="img/org-mode-unicorn-logo_2017-09-05_10-16-22.png" alt="org-mode-unicorn-logo_2017-09-05_10-16-22.png" width="40px" />This page is generated using <code>(org-html-export-to-html)</code> if you prefer using
 <code>org-mode</code> you can get the org file from<a href="https://raw.githubusercontent.com/mrosset/emacs-module/master/index.org"> GitHub</a>.
 </p>
-<div id="outline-container-org544ebd6" class="outline-2 container">
-<h2 id="org544ebd6"><span class="section-number-2">1</span> Introduction</h2>
+<div id="outline-container-org25ac26c" class="outline-2 container">
+<h2 id="org25ac26c"><span class="section-number-2">1</span> Introduction</h2>
 <div class="outline-text-2" id="text-1">
 <p>
 As of Emacs version <code>25.1</code> Emacs is able to load dynamic modules. And as of
@@ -99,8 +98,8 @@ is not a huge difference between the two. But understanding the C module well
 help when we write our Go module.
 </p>
 </div>
-<div id="outline-container-orgca6052b" class="outline-3">
-<h3 id="orgca6052b"><span class="section-number-3">1.1</span> Minimal Emacs module in C</h3>
+<div id="outline-container-orgb0e416a" class="outline-3">
+<h3 id="orgb0e416a"><span class="section-number-3">1.1</span> Minimal Emacs module in C</h3>
 <div class="outline-text-3" id="text-1-1">
 <p>
 First create a top level directory to house our project . I like to create my
@@ -146,10 +145,11 @@ Create the src directory
 </pre>
 </div>
 </div>
+</div>
 
-<div id="outline-container-org2a4965c" class="outline-4">
-<h4 id="org2a4965c"><span class="section-number-4">1.1.1</span> <code>src/cmodule.c</code></h4>
-<div class="outline-text-4" id="text-1-1-1">
+<div id="outline-container-org344d8dc" class="outline-3">
+<h3 id="org344d8dc"><span class="section-number-3">1.2</span> <code>src/cmodule.c</code></h3>
+<div class="outline-text-3" id="text-1-2">
 <p>
 If you are using <code>org-mode</code> you can generate this file automatically with <code>C-c C-v
 t</code> or <code>M-x org-babel-tangle</code> .
@@ -168,17 +168,14 @@ of what it does.
 <span class="org-type">int</span> <span class="org-variable-name">plugin_is_GPL_compatible</span>;
 
 <span class="org-keyword">static</span> <span class="org-type">emacs_value</span>
-<span class="org-function-name">Fcmodule_version</span> <span class="org-rainbow-delimiters-depth-1">(</span><span class="org-type">emacs_env</span> * <span class="org-variable-name">env</span>, <span class="org-type">int</span> <span class="org-variable-name">nargs</span>,
-      <span class="org-type">emacs_value</span> <span class="org-variable-name">args</span><span class="org-rainbow-delimiters-depth-2">[]</span>, <span class="org-type">void</span> *<span class="org-variable-name">data</span><span class="org-rainbow-delimiters-depth-1">)</span>
+<span class="org-function-name">Fcmodule_version</span> <span class="org-rainbow-delimiters-depth-1">(</span><span class="org-type">emacs_env</span> * <span class="org-variable-name">env</span>, <span class="org-type">ptrdiff_t</span> <span class="org-variable-name">nargs</span>, <span class="org-type">emacs_value</span> <span class="org-variable-name">args</span><span class="org-rainbow-delimiters-depth-2">[]</span>,
+      <span class="org-type">void</span> *<span class="org-variable-name">data</span><span class="org-rainbow-delimiters-depth-1">)</span>
 <span class="org-rainbow-delimiters-depth-1">{</span>
-  <span class="org-type">emacs_value</span> <span class="org-variable-name">message</span> = env-&gt;intern <span class="org-rainbow-delimiters-depth-2">(</span>env, <span class="org-string">"message"</span><span class="org-rainbow-delimiters-depth-2">)</span>;
-  <span class="org-type">emacs_value</span> *<span class="org-variable-name">string</span> = env-&gt;make_string <span class="org-rainbow-delimiters-depth-2">(</span>env, CMOD_VERSION, <span class="org-highlight-numbers-number">3</span><span class="org-rainbow-delimiters-depth-2">)</span>;
-  env-&gt;funcall <span class="org-rainbow-delimiters-depth-2">(</span>env, message, <span class="org-highlight-numbers-number">1</span>, CMOD_VERSION<span class="org-rainbow-delimiters-depth-2">)</span>;
-  <span class="org-keyword">return</span> string;
+  <span class="org-keyword">return</span> env-&gt;make_string <span class="org-rainbow-delimiters-depth-2">(</span>env, CMOD_VERSION, <span class="org-highlight-numbers-number">3</span><span class="org-rainbow-delimiters-depth-2">)</span>;
 <span class="org-rainbow-delimiters-depth-1">}</span>
 
-<span class="org-keyword">extern</span> <span class="org-type">int</span>
-<span class="org-function-name">emacs_module_init</span> <span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">struct</span> <span class="org-type">emacs_runtime</span> *<span class="org-variable-name">ert</span><span class="org-rainbow-delimiters-depth-1">)</span>
+<span class="org-keyword">extern</span>
+<span class="org-type">int</span> <span class="org-function-name">emacs_module_init</span> <span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">struct</span> <span class="org-type">emacs_runtime</span> *<span class="org-variable-name">ert</span><span class="org-rainbow-delimiters-depth-1">)</span>
 <span class="org-rainbow-delimiters-depth-1">{</span>
 
 <span class="org-type">emacs_env</span> *<span class="org-variable-name">env</span> = ert-&gt;get_environment <span class="org-rainbow-delimiters-depth-2">(</span>ert<span class="org-rainbow-delimiters-depth-2">)</span>;
@@ -189,14 +186,24 @@ of what it does.
 <span class="org-type">emacs_value</span> <span class="org-variable-name">pargs</span><span class="org-rainbow-delimiters-depth-2">[]</span> = <span class="org-rainbow-delimiters-depth-2">{</span> Qfeat <span class="org-rainbow-delimiters-depth-2">}</span>;
 env-&gt;funcall <span class="org-rainbow-delimiters-depth-2">(</span>env, Qprovide, <span class="org-highlight-numbers-number">1</span>, pargs<span class="org-rainbow-delimiters-depth-2">)</span>;
 
-printf<span class="org-rainbow-delimiters-depth-2">(</span><span class="org-string">"%s\n"</span>, CMOD_VERSION<span class="org-rainbow-delimiters-depth-2">)</span>;
-  <span class="org-keyword">return</span> <span class="org-highlight-numbers-number">0</span>;
+<span class="org-type">emacs_value</span> <span class="org-variable-name">fn</span> = env-&gt;make_function <span class="org-rainbow-delimiters-depth-2">(</span>env, <span class="org-highlight-numbers-number">0</span>, <span class="org-highlight-numbers-number">0</span>, Fcmodule_version,
+                 <span class="org-string">"Returns cmodule version"</span>, <span class="org-constant">NULL</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+
+<span class="org-type">emacs_value</span> <span class="org-variable-name">Qfset</span> = env-&gt;intern <span class="org-rainbow-delimiters-depth-2">(</span>env, <span class="org-string">"fset"</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+<span class="org-type">emacs_value</span> <span class="org-variable-name">Qsym</span> = env-&gt;intern <span class="org-rainbow-delimiters-depth-2">(</span>env, <span class="org-string">"cmodule-version"</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+
+<span class="org-type">emacs_value</span> <span class="org-variable-name">fargs</span><span class="org-rainbow-delimiters-depth-2">[]</span> = <span class="org-rainbow-delimiters-depth-2">{</span> Qsym, fn <span class="org-rainbow-delimiters-depth-2">}</span>;
+env-&gt;funcall<span class="org-rainbow-delimiters-depth-2">(</span>env, Qfset, <span class="org-highlight-numbers-number">2</span>, fargs<span class="org-rainbow-delimiters-depth-2">)</span>;
+<span class="org-keyword">return</span> <span class="org-highlight-numbers-number">0</span>;
 <span class="org-rainbow-delimiters-depth-1">}</span>
 </pre>
 </div>
 </div>
+</div>
 
-<ul class="org-ul"><li><a id="orgbe74f75"></a>C Breakdown<br /><div class="outline-text-5" id="text-orgbe74f75">
+<div id="outline-container-orgbc8d83b" class="outline-3">
+<h3 id="orgbc8d83b"><span class="section-number-3">1.3</span> C Breakdown</h3>
+<div class="outline-text-3" id="text-1-3">
 <p>
 First we include <code>emacs-module.h</code> header file. We'll need this for the Emacs
 declaration types.
@@ -220,21 +227,16 @@ Emacs will not load the module.
 
 <p>
 Next is the C function that we plan to call from Emacs. Our function is
-simple, all it does is take a C string literal called <code>CMOD_VERSION</code> and
-passes it to Emacs <code>(message)</code> function. It's the same as if we called
-<code>(message "0.1")</code>. And the end result will display 0.1 in the message
-window and buffer.
+simple, all it does is take a C string literal called <code>CMOD_VERSION</code>. Creates an
+Emacs strings and then returns it.
 </p>
 
 <div class="org-src-container">
 <pre class="src src-C"><span class="org-keyword">static</span> <span class="org-type">emacs_value</span>
-<span class="org-function-name">Fcmodule_version</span> <span class="org-rainbow-delimiters-depth-1">(</span><span class="org-type">emacs_env</span> * <span class="org-variable-name">env</span>, <span class="org-type">int</span> <span class="org-variable-name">nargs</span>,
-      <span class="org-type">emacs_value</span> <span class="org-variable-name">args</span><span class="org-rainbow-delimiters-depth-2">[]</span>, <span class="org-type">void</span> *<span class="org-variable-name">data</span><span class="org-rainbow-delimiters-depth-1">)</span>
+<span class="org-function-name">Fcmodule_version</span> <span class="org-rainbow-delimiters-depth-1">(</span><span class="org-type">emacs_env</span> * <span class="org-variable-name">env</span>, <span class="org-type">ptrdiff_t</span> <span class="org-variable-name">nargs</span>, <span class="org-type">emacs_value</span> <span class="org-variable-name">args</span><span class="org-rainbow-delimiters-depth-2">[]</span>,
+      <span class="org-type">void</span> *<span class="org-variable-name">data</span><span class="org-rainbow-delimiters-depth-1">)</span>
 <span class="org-rainbow-delimiters-depth-1">{</span>
-  <span class="org-type">emacs_value</span> <span class="org-variable-name">message</span> = env-&gt;intern <span class="org-rainbow-delimiters-depth-2">(</span>env, <span class="org-string">"message"</span><span class="org-rainbow-delimiters-depth-2">)</span>;
-  <span class="org-type">emacs_value</span> *<span class="org-variable-name">string</span> = env-&gt;make_string <span class="org-rainbow-delimiters-depth-2">(</span>env, CMOD_VERSION, <span class="org-highlight-numbers-number">3</span><span class="org-rainbow-delimiters-depth-2">)</span>;
-  env-&gt;funcall <span class="org-rainbow-delimiters-depth-2">(</span>env, message, <span class="org-highlight-numbers-number">1</span>, CMOD_VERSION<span class="org-rainbow-delimiters-depth-2">)</span>;
-  <span class="org-keyword">return</span> string;
+  <span class="org-keyword">return</span> env-&gt;make_string <span class="org-rainbow-delimiters-depth-2">(</span>env, CMOD_VERSION, <span class="org-highlight-numbers-number">3</span><span class="org-rainbow-delimiters-depth-2">)</span>;
 <span class="org-rainbow-delimiters-depth-1">}</span>
 </pre>
 </div>
@@ -244,8 +246,8 @@ Next is the entry point of our module and is run when the module is first
 loaded by Emacs.
 </p>
 <div class="org-src-container">
-<pre class="src src-C"><span class="org-keyword">extern</span> <span class="org-type">int</span>
-<span class="org-function-name">emacs_module_init</span> <span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">struct</span> <span class="org-type">emacs_runtime</span> *<span class="org-variable-name">ert</span><span class="org-rainbow-delimiters-depth-1">)</span>
+<pre class="src src-C"><span class="org-keyword">extern</span>
+<span class="org-type">int</span> <span class="org-function-name">emacs_module_init</span> <span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">struct</span> <span class="org-type">emacs_runtime</span> *<span class="org-variable-name">ert</span><span class="org-rainbow-delimiters-depth-1">)</span>
 <span class="org-rainbow-delimiters-depth-1">{</span>
 </pre>
 </div>
@@ -286,18 +288,31 @@ env-&gt;funcall <span class="org-rainbow-delimiters-depth-1">(</span>env, Qprovi
 </pre>
 </div>
 
+<p>
+Next we declare our function and then use Emacs fset to define it. In short we
+are telling Emacs that whenever we call <code>(cmodule-verion)</code> to execute
+the <code>Fcmodule_version</code> C function.
+</p>
+
 <div class="org-src-container">
-<pre class="src src-C">  printf<span class="org-rainbow-delimiters-depth-1">(</span><span class="org-string">"%s\n"</span>, CMOD_VERSION<span class="org-rainbow-delimiters-depth-1">)</span>;
-  <span class="org-keyword">return</span> <span class="org-highlight-numbers-number">0</span>;
+<pre class="src src-C"><span class="org-type">emacs_value</span> <span class="org-variable-name">fn</span> = env-&gt;make_function <span class="org-rainbow-delimiters-depth-1">(</span>env, <span class="org-highlight-numbers-number">0</span>, <span class="org-highlight-numbers-number">0</span>, Fcmodule_version,
+                 <span class="org-string">"Returns cmodule version"</span>, <span class="org-constant">NULL</span><span class="org-rainbow-delimiters-depth-1">)</span>;
+
+<span class="org-type">emacs_value</span> <span class="org-variable-name">Qfset</span> = env-&gt;intern <span class="org-rainbow-delimiters-depth-1">(</span>env, <span class="org-string">"fset"</span><span class="org-rainbow-delimiters-depth-1">)</span>;
+<span class="org-type">emacs_value</span> <span class="org-variable-name">Qsym</span> = env-&gt;intern <span class="org-rainbow-delimiters-depth-1">(</span>env, <span class="org-string">"cmodule-version"</span><span class="org-rainbow-delimiters-depth-1">)</span>;
+
+<span class="org-type">emacs_value</span> <span class="org-variable-name">fargs</span><span class="org-rainbow-delimiters-depth-1">[]</span> = <span class="org-rainbow-delimiters-depth-1">{</span> Qsym, fn <span class="org-rainbow-delimiters-depth-1">}</span>;
+env-&gt;funcall<span class="org-rainbow-delimiters-depth-1">(</span>env, Qfset, <span class="org-highlight-numbers-number">2</span>, fargs<span class="org-rainbow-delimiters-depth-1">)</span>;
+<span class="org-keyword">return</span> <span class="org-highlight-numbers-number">0</span>;
 <span class="org-rainbow-delimiters-unmatched">}</span>
 </pre>
 </div>
-</div></li></ul>
+</div>
 </div>
 
-<div id="outline-container-orgaad4126" class="outline-4">
-<h4 id="orgaad4126"><span class="section-number-4">1.1.2</span> Compiling the module</h4>
-<div class="outline-text-4" id="text-1-1-2">
+<div id="outline-container-orgd3b7036" class="outline-3">
+<h3 id="orgd3b7036"><span class="section-number-3">1.4</span> Compiling the module</h3>
+<div class="outline-text-3" id="text-1-4">
 <p>
 Create a lib directory to hold our shared libraries.
 </p>
@@ -316,29 +331,53 @@ Now compile <code>cmodule.c</code> as a shared C library.
 </div>
 </div>
 
-<div id="outline-container-org9e9e0b1" class="outline-4">
-<h4 id="org9e9e0b1"><span class="section-number-4">1.1.3</span> Using C module with Emacs.</h4>
-<div class="outline-text-4" id="text-1-1-3">
+<div id="outline-container-org8abd1cc" class="outline-3">
+<h3 id="org8abd1cc"><span class="section-number-3">1.5</span> Using C module with Emacs.</h3>
+<div class="outline-text-3" id="text-1-5">
 <p>
 To test our module we'll start Emacs in batch mode then call our custom function.
 </p>
 <div class="org-src-container">
-<pre class="src src-shell">emacs -Q -L ./lib -batch --eval <span class="org-string">"(require 'cmodule)"</span>
+<pre class="src src-shell">emacs -Q -L ./lib -batch --eval <span class="org-string">"(require 'cmodule)"</span> --eval <span class="org-string">"(cmodule-version)"</span>
 </pre>
 </div>
 
-<pre class="example">
-0.1
-
-</pre>
-</div>
-</div>
-</div>
-
-<div id="outline-container-org626198c" class="outline-3">
-<h3 id="org626198c"><span class="section-number-3">1.2</span> Automatically</h3>
-<div class="outline-text-3" id="text-1-2">
 <p>
+0.1
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgbc11e38" class="outline-3">
+<h3 id="orgbc11e38"><span class="section-number-3">1.6</span> C summary</h3>
+<div class="outline-text-3" id="text-1-6">
+<p>
+Writing a Emacs module in C is straight forward. These are the basic things you
+need to create a Emacs module.
+</p>
+
+<ol class="org-ol">
+<li>emacs-module.h</li>
+<li>plugin_is_GPL_compatibe symbol</li>
+<li>emacs_module_init entry point</li>
+<li>Provision module feature within Emacs</li>
+<li>fset function within Emacs</li>
+</ol>
+
+<p>
+This C example was put together from <a href="http://diobla.info/blog-archive/modules-tut.html">diobla.info blog</a> . He does a good job of
+breaking things down, and has some helper functions for binding and
+provisioning.
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgbd3867c" class="outline-2 container">
+<h2 id="orgbd3867c"><span class="section-number-2">2</span> Automation</h2>
+<div class="outline-text-2" id="text-2">
+<p>
+Knowing what we need, we can now create our module in Go.
 This whole guide can be run without any manual input using.
 </p>
 
@@ -349,9 +388,8 @@ This whole guide can be run without any manual input using.
 </div>
 </div>
 </div>
-</div>
 <div id="postamble" class="status">
-<p class="date">Created: 2017-09-05 Tue 13:44</p>
+<p class="date">Created: 2017-09-05 Tue 18:09</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>
