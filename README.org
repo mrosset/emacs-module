@@ -1,0 +1,3 @@
+#+TITLE: Writing Emacs modules with Go
+
+This guide is hosted as [[https://mrosset.github.io/emacs-module/][GitHub Page]]

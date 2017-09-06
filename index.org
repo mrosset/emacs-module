@@ -21,15 +21,19 @@
 :HTML_CONTAINER_CLASS: container
 :END:
 
-As of Emacs version ~25.1~ Emacs is able to load dynamic modules. And as of
-version ~1.5~ Go supports building packages as dynamic shared libraries.
+This page is currently complete, but should still be concidered a draft. If you
+find any grammar, spelling or technical errors. Please create an issue on [[https://github.com/mrosset/emacs-module][GitHub]]
+
+As of Emacs version ~25.1~ Emacs has support for loading dynamic modules. And as
+of version ~1.5~ Go supports building packages as dynamic shared libraries.
 Allowing us to write Emacs functions in Go. This guide will walk you through
-creating first a simple module in C and then a simple module in Go. There
-is not a huge difference between the two. But understanding the C module well
-help when we write our Go module.
-** Minimal Emacs module in C
+creating first a simple module in C and then a simple module in Go. There is not
+a huge difference between the two. But understanding the C module well help when
+we write our Go module.
+
+** C Emacs module
 First create a top level directory to house our project . I like to create my
-projects in ~$HOME/src~ pick which ever location suits you best. Once we
+projects in ~$HOME/src~ pick whichever location suits you. Once we
 create the directory we'll ~cd~ into it. And any commands we run from now on.
 Will be from that directory.
 
@@ -91,7 +95,7 @@ int plugin_is_GPL_compatible;
 
 Next is the C function that we plan to call from Emacs. Our function is
 simple, all it does is take a C string literal called ~CMOD_VERSION~. Creates an
-Emacs strings and then returns it.
+Emacs string and then returns it.
 
 #+BEGIN_SRC C :main no :tangle src/cmodule.c
   static emacs_value
@@ -107,9 +111,16 @@ Emacs strings and then returns it.
 Next is the entry point of our module and is run when the module is first
 loaded by Emacs.
 #+BEGIN_SRC C :main no :tangle src/cmodule.c
-  extern
-  int emacs_module_init (struct emacs_runtime *ert)
-  {
+extern
+int emacs_module_init (struct emacs_runtime *ert)
+#+END_SRC
+
+#+RESULTS:
+
+First we get the Emacs environment from the Emacs run-time.
+#+BEGIN_SRC C :main no :tangle src/cmodule.c
+{
+emacs_env *env = ert->get_environment (ert);
 #+END_SRC
 
 #+RESULTS:
@@ -117,33 +128,17 @@ loaded by Emacs.
 We need to provision the module. We'll call the elisp ~(provide)~ function
 through the C interface. If not Emacs will error with feature not provided.
 
-First we get the Emacs environment from the Emacs run-time.
-#+BEGIN_SRC C -p :main no :tangle src/cmodule.c
-emacs_env *env = ert->get_environment (ert);
-#+END_SRC
-
-#+RESULTS:
-
-Then we convert our feature string into a qouted lisp symbol. The nameing is important
+We convert our feature string into a qouted lisp symbol. The nameing is important
 our module will be compiled to ~cmodule.so~ so the feature symbol *must* be named ~cmodule~,
 anything else will not work. Then we get a quoted symbol for the elisp provide function.
 
 #+BEGIN_SRC C :main no :tangle src/cmodule.c
 emacs_value Qfeat = env->intern (env, "cmodule");
 emacs_value Qprovide = env->intern (env, "provide");
-#+END_SRC
 
-#+RESULTS:
-
-We then create an arguements array containing our feature symbol. And have the
-Emacs environment call the provides function with our agruement.
-
-#+BEGIN_SRC C :main no :tangle src/cmodule.c
 emacs_value pargs[] = { Qfeat };
 env->funcall (env, Qprovide, 1, pargs);
 #+END_SRC
-
-#+RESULTS:
 
 Next we declare our function and then use Emacs fset to define it. In short we
 are telling Emacs that whenever we call ~(cmodule-verion)~ to execute
@@ -168,19 +163,20 @@ Create a lib directory to hold our shared libraries.
 mkdir lib
 #+END_SRC
 
-Now compile ~cmodule.c~ as a shared C library.
+Now we compile ~src/cmodule.c~ as a shared C library.
 #+BEGIN_SRC shell :results silent
 gcc -I emacs-25.2/src -fPIC -shared src/cmodule.c -o lib/cmodule.so
 #+END_SRC
 
-** Using C module with Emacs.
+** Testing C module with Emacs.
 To test our module we'll start Emacs in batch mode then call our custom function.
-#+BEGIN_SRC shell :exports both
-emacs -Q -L ./lib -batch --eval "(require 'cmodule)" --eval "(cmodule-version)"
+We'll use Emacs message function to print the value to stdout.
+#+BEGIN_SRC bash :exports both :prologue exec 2>&1
+emacs -Q -L ./lib -batch -l cmodule --eval "(message (cmodule-version))"
 #+END_SRC
 
 #+RESULTS:
-0.1
+: 0.1
 
 ** C summary
 Writing a Emacs module in C is straight forward. These are the basic things you
@@ -196,13 +192,195 @@ This C example was put together from [[http://diobla.info/blog-archive/modules-t
 breaking things down, and has some helper functions for binding and
 provisioning.
 
-* Automation
+Here is some additional links if your looking to create some more advanced C
+module.
+
+1. [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Dynamic-Modules.html][Dynamic Modules - GNU Emacs Lisp Reference Manual]]
+2. [[https://github.com/jkitchin/emacs-modules][https://github.com/jkitchin/emacs-modules]]
+
+** Go Emacs Module
+We'll now make a similar module, but this time we'll access the Go runtime and
+get the version of go we are using. We'll have to do some boiler plating and some C
+type conversions but we can for the most part stick to go.
+
+** ~src/main.go~
+Create and edit file ~src/main.go~. We'll do a breakdown of this file in the
+next section.
+#+INCLUDE: src/main.go src go
+** Go Breakdown
+
+We'll name our package main, even though we are not creating a command module
+it's important the package name is main, otherwise when we build a c-shared
+library it will build an ar archive, and not a dynamic library.
+
+#+BEGIN_SRC go :tangle src/main.go
+package main
+#+END_SRC
+
+And in the comments section we include ~emacs-module.h~ . We also
+declare ~int plugin_is_GPL_compatible~.
+
+#+BEGIN_SRC go :tangle src/main.go
+/*
+#include <emacs-module.h>
+#include <stdlib.h>
+int plugin_is_GPL_compatible;
+#+END_SRC
+
+We need to provision our feature within emacs. To do this we need to call the
+Emacs ~(provide)~ function just like we did with the C module. Unfortunately we
+can not call C pointer functions directly from Go. But we can call them from C.
+So we'll create a helper C function that can access the struct function pointer we
+need. We'll do this in the special comment section just before ~import "C"~.
+#+BEGIN_SRC go :main no :tangle src/main.go
+  static void
+  provide (struct emacs_runtime *ert, const char *feature)
+  {
+    emacs_env *env = ert->get_environment (ert);
+
+    emacs_value Qfeat = env->intern (env, feature);
+    emacs_value Qprovide = env->intern (env, "provide");
+    emacs_value args[] = { Qfeat };
+
+    env->funcall (env, Qprovide, 1, args);
+  }
+#+END_SRC
+
+We declare our function in C even though cgo will generate a ~gmodule.h~ file. If
+we don't declare it now we won't be able to reference it from this file.
+#+BEGIN_SRC go :main no :tangle src/main.go
+extern emacs_value Fgo_version(emacs_env* p0);
+#+END_SRC
+
+We create a helper function to fset our function within emacs, this function
+assumes our Emacs function will not be taking any arguements it's not ideal but
+it will work for the function we want to create.
+#+BEGIN_SRC go :main no :tangle src/main.go
+  static void
+  fset (struct emacs_runtime *ert, const char *name, void *fn)
+  {
+    emacs_env *env = ert->get_environment (ert);
+
+    emacs_value Qfn = env->make_function (env, 0, 0, fn,
+            "Returns cmodule version", NULL);
+
+    emacs_value Qfset = env->intern (env, "fset");
+    emacs_value Qsym = env->intern (env, name);
+
+    emacs_value fargs[] = { Qsym, Qfn };
+    env->funcall (env, Qfset, 2, fargs);
+  }
+#+END_SRC
+
+Later on we'll need to convert the runtime version Go string into a Emacs string
+value. Since we can't call function pointers directly we'll create a helper
+function to handle this.
+#+BEGIN_SRC go :tangle src/main.go
+  static emacs_value
+  make_string (emacs_env * env, const char *s)
+  {
+    return env->make_string (env, s, strlen(s));
+  }
+#+END_SRC
+
+#+RESULTS:
+
+We need to import the C package. The C package is special since it tells go to
+build with cgo. It's important that this package import comes first and it on
+it's own line. We need to close our C comment section just before ~import "C"~
+there should be no new lines after closing the comment.
+#+BEGIN_SRC go :tangle src/main.go
+*/
+import "C"
+import (
+       "runtime"
+       "unsafe"
+)
+#+END_SRC
+
+We'll be using some C strings. Go will not be able to memory manage our C
+types. so we'll have to use some unsafe functions and free the strings
+ourselves. We'll create a ~freeString~ function to make this easier. ~C.free~ calls the
+free function  we included in ~stdlib.h~. We also need to use the unsafe package
+to get the pointer.
+#+BEGIN_SRC go :tangle src/main.go
+func freeString(cstring *C.char) {
+  C.free(unsafe.Pointer(cstring))
+}
+#+END_SRC
+
+We declare the Go function. This is the Go code that will be exectuted when we
+call our Emacs function using ~(go-version)~ . Our function will return a type
+that emacs can evaluate. In this case the go runtime version as a string.
+
+#+BEGIN_SRC go :tangle src/main.go
+//export Fgo_version
+func Fgo_version(env *C.emacs_env) C.emacs_value {
+  version := runtime.Version()
+  cversion := C.CString(version)
+  defer freeString(cversion)
+  return C.make_string(env, cversion)
+}
+#+END_SRC
+
+Next we create our Emacs entry point. and we'll use ~//export~ directive to tell
+cgo we want to export this as a dynamic function. This is the same as if we
+wrote ~extern int emacs_module_init(struct emacs_runtime* p0);~ in C, in fact Go
+will produce this declaration when it creates a C header file for our dynamic library.
+
+If we were to return the Go type ~int~ instead of ~C.int~ it would create a
+compiler error since the signature would no longer match the Emacs one.
+#+BEGIN_SRC go :tangle src/main.go
+
+//export emacs_module_init
+func emacs_module_init(ert *C.struct_emacs_runtime) C.int {
+  cfeat := C.CString("gmodule")
+  fname := C.CString("go-version")
+
+  defer freeString(fname)
+  defer freeString(cfeat)
+
+  C.provide(ert, cfeat)
+  C.fset(ert, fname, C.Fgo_version);
+  return 0
+}
+#+END_SRC
+
+
+Even though this is not a command package. We need to include a main function.
+Due to the fact we are exporting go functions using ~//export~ . We can simply
+stub one out like so.
+#+BEGIN_SRC go :tangle src/main.go
+func main() {}
+#+END_SRC
+
+** Building the Go module
+
+We export our include flags and then manually build our so file.
+#+BEGIN_SRC shell
+export CGO_CPPFLAGS="-I $PWD/emacs-25.2/src"
+go build -buildmode=c-shared -o lib/gmodule.so src/main.go
+#+END_SRC
+
+#+RESULTS:
+
+You can also set the CFLAGS in your go files using cgo directives. For more
+information on cgo directives and cgo see the [[https://golang.org/cmd/cgo/][CGO]] web page.
+
+** Test the Go module
+#+BEGIN_SRC bash :exports both :prologue exec 2>&1
+emacs -Q -L ./lib -batch -l "gmodule" --eval '(message (go-version))'
+#+END_SRC
+
+#+RESULTS:
+: go1.9
+
+* Automating this guide.
 :PROPERTIES:
 :HTML_CONTAINER_CLASS: container
 :END:
-Knowing what we need, we can now create our module in Go.
-This whole guide can be run without any manual input using.
 
+This whole guide can be run without any manual input using.
 #+BEGIN_EXAMPLE emacs-lisp
 (org-babel-tangle)
 (org-babel-execute-buffer)

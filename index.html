@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2017-09-05 Tue 18:09 -->
+<!-- 2017-09-06 Wed 12:59 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Writing Emacs modules with Go</title>
@@ -68,17 +68,22 @@ for the JavaScript code in this tag.
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#org25ac26c">1. Introduction</a>
+<li><a href="#orga082fcf">1. Introduction</a>
 <ul>
-<li><a href="#orgb0e416a">1.1. Minimal Emacs module in C</a></li>
-<li><a href="#org344d8dc">1.2. <code>src/cmodule.c</code></a></li>
-<li><a href="#orgbc8d83b">1.3. C Breakdown</a></li>
-<li><a href="#orgd3b7036">1.4. Compiling the module</a></li>
-<li><a href="#org8abd1cc">1.5. Using C module with Emacs.</a></li>
-<li><a href="#orgbc11e38">1.6. C summary</a></li>
+<li><a href="#org0f22e9d">1.1. C Emacs module</a></li>
+<li><a href="#orgb0e64d1">1.2. <code>src/cmodule.c</code></a></li>
+<li><a href="#org6729874">1.3. C Breakdown</a></li>
+<li><a href="#org8d5d2cb">1.4. Compiling the module</a></li>
+<li><a href="#org154efdc">1.5. Testing C module with Emacs.</a></li>
+<li><a href="#org3e14ff1">1.6. C summary</a></li>
+<li><a href="#org02d707a">1.7. Go Emacs Module</a></li>
+<li><a href="#org60783bd">1.8. <code>src/main.go</code></a></li>
+<li><a href="#org1b4e07d">1.9. Go Breakdown</a></li>
+<li><a href="#orgd8e6fb6">1.10. Building the Go module</a></li>
+<li><a href="#org1ae30cc">1.11. Test the Go module</a></li>
 </ul>
 </li>
-<li><a href="#orgbd3867c">2. Automation</a></li>
+<li><a href="#orga425747">2. Automating this guide.</a></li>
 </ul>
 </div>
 </div>
@@ -86,24 +91,30 @@ for the JavaScript code in this tag.
 <img src="img/org-mode-unicorn-logo_2017-09-05_10-16-22.png" alt="org-mode-unicorn-logo_2017-09-05_10-16-22.png" width="40px" />This page is generated using <code>(org-html-export-to-html)</code> if you prefer using
 <code>org-mode</code> you can get the org file from<a href="https://raw.githubusercontent.com/mrosset/emacs-module/master/index.org"> GitHub</a>.
 </p>
-<div id="outline-container-org25ac26c" class="outline-2 container">
-<h2 id="org25ac26c"><span class="section-number-2">1</span> Introduction</h2>
+<div id="outline-container-orga082fcf" class="outline-2 container">
+<h2 id="orga082fcf"><span class="section-number-2">1</span> Introduction</h2>
 <div class="outline-text-2" id="text-1">
 <p>
-As of Emacs version <code>25.1</code> Emacs is able to load dynamic modules. And as of
-version <code>1.5</code> Go supports building packages as dynamic shared libraries.
+This page is currently complete, but should still be concidered a draft. If you
+find any grammar, spelling or technical errors. Please create an issue on <a href="https://github.com/mrosset/emacs-module">GitHub</a>
+</p>
+
+<p>
+As of Emacs version <code>25.1</code> Emacs has support for loading dynamic modules. And as
+of version <code>1.5</code> Go supports building packages as dynamic shared libraries.
 Allowing us to write Emacs functions in Go. This guide will walk you through
-creating first a simple module in C and then a simple module in Go. There
-is not a huge difference between the two. But understanding the C module well
-help when we write our Go module.
+creating first a simple module in C and then a simple module in Go. There is not
+a huge difference between the two. But understanding the C module well help when
+we write our Go module.
 </p>
 </div>
-<div id="outline-container-orgb0e416a" class="outline-3">
-<h3 id="orgb0e416a"><span class="section-number-3">1.1</span> Minimal Emacs module in C</h3>
+
+<div id="outline-container-org0f22e9d" class="outline-3">
+<h3 id="org0f22e9d"><span class="section-number-3">1.1</span> C Emacs module</h3>
 <div class="outline-text-3" id="text-1-1">
 <p>
 First create a top level directory to house our project . I like to create my
-projects in <code>$HOME/src</code> pick which ever location suits you best. Once we
+projects in <code>$HOME/src</code> pick whichever location suits you. Once we
 create the directory we'll <code>cd</code> into it. And any commands we run from now on.
 Will be from that directory.
 </p>
@@ -147,8 +158,8 @@ Create the src directory
 </div>
 </div>
 
-<div id="outline-container-org344d8dc" class="outline-3">
-<h3 id="org344d8dc"><span class="section-number-3">1.2</span> <code>src/cmodule.c</code></h3>
+<div id="outline-container-orgb0e64d1" class="outline-3">
+<h3 id="orgb0e64d1"><span class="section-number-3">1.2</span> <code>src/cmodule.c</code></h3>
 <div class="outline-text-3" id="text-1-2">
 <p>
 If you are using <code>org-mode</code> you can generate this file automatically with <code>C-c C-v
@@ -176,8 +187,8 @@ of what it does.
 
 <span class="org-keyword">extern</span>
 <span class="org-type">int</span> <span class="org-function-name">emacs_module_init</span> <span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">struct</span> <span class="org-type">emacs_runtime</span> *<span class="org-variable-name">ert</span><span class="org-rainbow-delimiters-depth-1">)</span>
-<span class="org-rainbow-delimiters-depth-1">{</span>
 
+<span class="org-rainbow-delimiters-depth-1">{</span>
 <span class="org-type">emacs_env</span> *<span class="org-variable-name">env</span> = ert-&gt;get_environment <span class="org-rainbow-delimiters-depth-2">(</span>ert<span class="org-rainbow-delimiters-depth-2">)</span>;
 
 <span class="org-type">emacs_value</span> <span class="org-variable-name">Qfeat</span> = env-&gt;intern <span class="org-rainbow-delimiters-depth-2">(</span>env, <span class="org-string">"cmodule"</span><span class="org-rainbow-delimiters-depth-2">)</span>;
@@ -201,8 +212,8 @@ env-&gt;funcall<span class="org-rainbow-delimiters-depth-2">(</span>env, Qfset, 
 </div>
 </div>
 
-<div id="outline-container-orgbc8d83b" class="outline-3">
-<h3 id="orgbc8d83b"><span class="section-number-3">1.3</span> C Breakdown</h3>
+<div id="outline-container-org6729874" class="outline-3">
+<h3 id="org6729874"><span class="section-number-3">1.3</span> C Breakdown</h3>
 <div class="outline-text-3" id="text-1-3">
 <p>
 First we include <code>emacs-module.h</code> header file. We'll need this for the Emacs
@@ -228,7 +239,7 @@ Emacs will not load the module.
 <p>
 Next is the C function that we plan to call from Emacs. Our function is
 simple, all it does is take a C string literal called <code>CMOD_VERSION</code>. Creates an
-Emacs strings and then returns it.
+Emacs string and then returns it.
 </p>
 
 <div class="org-src-container">
@@ -248,7 +259,15 @@ loaded by Emacs.
 <div class="org-src-container">
 <pre class="src src-C"><span class="org-keyword">extern</span>
 <span class="org-type">int</span> <span class="org-function-name">emacs_module_init</span> <span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">struct</span> <span class="org-type">emacs_runtime</span> *<span class="org-variable-name">ert</span><span class="org-rainbow-delimiters-depth-1">)</span>
-<span class="org-rainbow-delimiters-depth-1">{</span>
+</pre>
+</div>
+
+<p>
+First we get the Emacs environment from the Emacs run-time.
+</p>
+<div class="org-src-container">
+<pre class="src src-C"><span class="org-rainbow-delimiters-depth-1">{</span>
+<span class="org-type">emacs_env</span> *<span class="org-variable-name">env</span> = ert-&gt;get_environment <span class="org-rainbow-delimiters-depth-2">(</span>ert<span class="org-rainbow-delimiters-depth-2">)</span>;
 </pre>
 </div>
 
@@ -258,15 +277,7 @@ through the C interface. If not Emacs will error with feature not provided.
 </p>
 
 <p>
-First we get the Emacs environment from the Emacs run-time.
-</p>
-<div class="org-src-container">
-<pre class="src src-C"><span class="org-type">emacs_env</span> *<span class="org-variable-name">env</span> = ert-&gt;get_environment <span class="org-rainbow-delimiters-depth-1">(</span>ert<span class="org-rainbow-delimiters-depth-1">)</span>;
-</pre>
-</div>
-
-<p>
-Then we convert our feature string into a qouted lisp symbol. The nameing is important
+We convert our feature string into a qouted lisp symbol. The nameing is important
 our module will be compiled to <code>cmodule.so</code> so the feature symbol <b>must</b> be named <code>cmodule</code>,
 anything else will not work. Then we get a quoted symbol for the elisp provide function.
 </p>
@@ -274,16 +285,8 @@ anything else will not work. Then we get a quoted symbol for the elisp provide f
 <div class="org-src-container">
 <pre class="src src-C"><span class="org-type">emacs_value</span> <span class="org-variable-name">Qfeat</span> = env-&gt;intern <span class="org-rainbow-delimiters-depth-1">(</span>env, <span class="org-string">"cmodule"</span><span class="org-rainbow-delimiters-depth-1">)</span>;
 <span class="org-type">emacs_value</span> <span class="org-variable-name">Qprovide</span> = env-&gt;intern <span class="org-rainbow-delimiters-depth-1">(</span>env, <span class="org-string">"provide"</span><span class="org-rainbow-delimiters-depth-1">)</span>;
-</pre>
-</div>
 
-<p>
-We then create an arguements array containing our feature symbol. And have the
-Emacs environment call the provides function with our agruement.
-</p>
-
-<div class="org-src-container">
-<pre class="src src-C"><span class="org-type">emacs_value</span> <span class="org-variable-name">pargs</span><span class="org-rainbow-delimiters-depth-1">[]</span> = <span class="org-rainbow-delimiters-depth-1">{</span> Qfeat <span class="org-rainbow-delimiters-depth-1">}</span>;
+<span class="org-type">emacs_value</span> <span class="org-variable-name">pargs</span><span class="org-rainbow-delimiters-depth-1">[]</span> = <span class="org-rainbow-delimiters-depth-1">{</span> Qfeat <span class="org-rainbow-delimiters-depth-1">}</span>;
 env-&gt;funcall <span class="org-rainbow-delimiters-depth-1">(</span>env, Qprovide, <span class="org-highlight-numbers-number">1</span>, pargs<span class="org-rainbow-delimiters-depth-1">)</span>;
 </pre>
 </div>
@@ -310,8 +313,8 @@ env-&gt;funcall<span class="org-rainbow-delimiters-depth-1">(</span>env, Qfset, 
 </div>
 </div>
 
-<div id="outline-container-orgd3b7036" class="outline-3">
-<h3 id="orgd3b7036"><span class="section-number-3">1.4</span> Compiling the module</h3>
+<div id="outline-container-org8d5d2cb" class="outline-3">
+<h3 id="org8d5d2cb"><span class="section-number-3">1.4</span> Compiling the module</h3>
 <div class="outline-text-3" id="text-1-4">
 <p>
 Create a lib directory to hold our shared libraries.
@@ -322,7 +325,7 @@ Create a lib directory to hold our shared libraries.
 </div>
 
 <p>
-Now compile <code>cmodule.c</code> as a shared C library.
+Now we compile <code>src/cmodule.c</code> as a shared C library.
 </p>
 <div class="org-src-container">
 <pre class="src src-shell">gcc -I emacs-25.2/src -fPIC -shared src/cmodule.c -o lib/cmodule.so
@@ -331,25 +334,22 @@ Now compile <code>cmodule.c</code> as a shared C library.
 </div>
 </div>
 
-<div id="outline-container-org8abd1cc" class="outline-3">
-<h3 id="org8abd1cc"><span class="section-number-3">1.5</span> Using C module with Emacs.</h3>
+<div id="outline-container-org154efdc" class="outline-3">
+<h3 id="org154efdc"><span class="section-number-3">1.5</span> Testing C module with Emacs.</h3>
 <div class="outline-text-3" id="text-1-5">
 <p>
 To test our module we'll start Emacs in batch mode then call our custom function.
+We'll use Emacs message function to print the value to stdout.
 </p>
 <div class="org-src-container">
-<pre class="src src-shell">emacs -Q -L ./lib -batch --eval <span class="org-string">"(require 'cmodule)"</span> --eval <span class="org-string">"(cmodule-version)"</span>
+<pre class="src src-bash">emacs -Q -L ./lib -batch -l cmodule --eval <span class="org-string">"(message (cmodule-version))"</span>
 </pre>
 </div>
-
-<p>
-0.1
-</p>
 </div>
 </div>
 
-<div id="outline-container-orgbc11e38" class="outline-3">
-<h3 id="orgbc11e38"><span class="section-number-3">1.6</span> C summary</h3>
+<div id="outline-container-org3e14ff1" class="outline-3">
+<h3 id="org3e14ff1"><span class="section-number-3">1.6</span> C summary</h3>
 <div class="outline-text-3" id="text-1-6">
 <p>
 Writing a Emacs module in C is straight forward. These are the basic things you
@@ -369,18 +369,340 @@ This C example was put together from <a href="http://diobla.info/blog-archive/mo
 breaking things down, and has some helper functions for binding and
 provisioning.
 </p>
-</div>
-</div>
-</div>
 
-<div id="outline-container-orgbd3867c" class="outline-2 container">
-<h2 id="orgbd3867c"><span class="section-number-2">2</span> Automation</h2>
-<div class="outline-text-2" id="text-2">
 <p>
-Knowing what we need, we can now create our module in Go.
-This whole guide can be run without any manual input using.
+Here is some additional links if your looking to create some more advanced C
+module.
 </p>
 
+<ol class="org-ol">
+<li><a href="https://www.gnu.org/software/emacs/manual/html_node/elisp/Dynamic-Modules.html">Dynamic Modules - GNU Emacs Lisp Reference Manual</a></li>
+<li><a href="https://github.com/jkitchin/emacs-modules"><a href="https://github.com/jkitchin/emacs-modules">https://github.com/jkitchin/emacs-modules</a></a></li>
+</ol>
+</div>
+</div>
+
+<div id="outline-container-org02d707a" class="outline-3">
+<h3 id="org02d707a"><span class="section-number-3">1.7</span> Go Emacs Module</h3>
+<div class="outline-text-3" id="text-1-7">
+<p>
+We'll now make a similar module, but this time we'll access the Go runtime and
+get the version of go we are using. We'll have to do some boiler plating and some C
+type conversions but we can for the most part stick to go.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org60783bd" class="outline-3">
+<h3 id="org60783bd"><span class="section-number-3">1.8</span> <code>src/main.go</code></h3>
+<div class="outline-text-3" id="text-1-8">
+<p>
+Create and edit file <code>src/main.go</code>. We'll do a breakdown of this file in the
+next section.
+</p>
+<div class="org-src-container">
+<pre class="src src-go"><span class="org-keyword">package</span> main
+
+<span class="org-comment-delimiter">/*</span>
+<span class="org-comment">#include &lt;emacs-module.h&gt;</span>
+<span class="org-comment">#include &lt;stdlib.h&gt;</span>
+<span class="org-comment">int plugin_is_GPL_compatible;</span>
+
+<span class="org-comment">static void</span>
+<span class="org-comment">provide (struct emacs_runtime *ert, const char *feature)</span>
+<span class="org-comment">{</span>
+<span class="org-comment">  emacs_env *env = ert-&gt;get_environment (ert);</span>
+
+<span class="org-comment">  emacs_value Qfeat = env-&gt;intern (env, feature);</span>
+<span class="org-comment">  emacs_value Qprovide = env-&gt;intern (env, "provide");</span>
+<span class="org-comment">  emacs_value args[] = { Qfeat };</span>
+
+<span class="org-comment">  env-&gt;funcall (env, Qprovide, 1, args);</span>
+<span class="org-comment">}</span>
+
+<span class="org-comment">extern emacs_value Fgo_version(emacs_env* p0);</span>
+
+<span class="org-comment">static void</span>
+<span class="org-comment">fset (struct emacs_runtime *ert, const char *name, void *fn)</span>
+<span class="org-comment">{</span>
+<span class="org-comment">  emacs_env *env = ert-&gt;get_environment (ert);</span>
+
+<span class="org-comment">  emacs_value Qfn = env-&gt;make_function (env, 0, 0, fn,</span>
+<span class="org-comment">          "Returns cmodule version", NULL);</span>
+
+<span class="org-comment">  emacs_value Qfset = env-&gt;intern (env, "fset");</span>
+<span class="org-comment">  emacs_value Qsym = env-&gt;intern (env, name);</span>
+
+<span class="org-comment">  emacs_value fargs[] = { Qsym, Qfn };</span>
+<span class="org-comment">  env-&gt;funcall (env, Qfset, 2, fargs);</span>
+<span class="org-comment">}</span>
+
+<span class="org-comment">static emacs_value</span>
+<span class="org-comment">make_string (emacs_env * env, const char *s)</span>
+<span class="org-comment">{</span>
+<span class="org-comment">  return env-&gt;make_string (env, s, strlen(s));</span>
+<span class="org-comment">}</span>
+
+<span class="org-comment">*/</span>
+<span class="org-keyword">import</span> <span class="org-string">"C"</span>
+<span class="org-keyword">import</span> <span class="org-rainbow-delimiters-depth-1">(</span>
+       <span class="org-string">"runtime"</span>
+       <span class="org-string">"unsafe"</span>
+<span class="org-rainbow-delimiters-depth-1">)</span>
+
+<span class="org-keyword">func</span> <span class="org-function-name">freeString</span><span class="org-rainbow-delimiters-depth-1">(</span>cstring *<span class="org-type">C.char</span><span class="org-rainbow-delimiters-depth-1">)</span> <span class="org-rainbow-delimiters-depth-1">{</span>
+  C.<span class="org-function-name">free</span><span class="org-rainbow-delimiters-depth-2">(</span>unsafe.<span class="org-function-name">Pointer</span><span class="org-rainbow-delimiters-depth-3">(</span>cstring<span class="org-rainbow-delimiters-depth-3">)</span><span class="org-rainbow-delimiters-depth-2">)</span>
+<span class="org-rainbow-delimiters-depth-1">}</span>
+
+<span class="org-comment-delimiter">//</span><span class="org-comment">export Fgo_version</span>
+<span class="org-keyword">func</span> <span class="org-function-name">Fgo_version</span><span class="org-rainbow-delimiters-depth-1">(</span>env *<span class="org-type">C.emacs_env</span><span class="org-rainbow-delimiters-depth-1">)</span> <span class="org-type">C.emacs_value</span> <span class="org-rainbow-delimiters-depth-1">{</span>
+  version := runtime.<span class="org-function-name">Version</span><span class="org-rainbow-delimiters-depth-2">()</span>
+  cversion := C.<span class="org-function-name">CString</span><span class="org-rainbow-delimiters-depth-2">(</span>version<span class="org-rainbow-delimiters-depth-2">)</span>
+  <span class="org-keyword">defer</span> <span class="org-function-name">freeString</span><span class="org-rainbow-delimiters-depth-2">(</span>cversion<span class="org-rainbow-delimiters-depth-2">)</span>
+  <span class="org-keyword">return</span> C.<span class="org-function-name">make_string</span><span class="org-rainbow-delimiters-depth-2">(</span>env, cversion<span class="org-rainbow-delimiters-depth-2">)</span>
+<span class="org-rainbow-delimiters-depth-1">}</span>
+
+<span class="org-comment-delimiter">//</span><span class="org-comment">export emacs_module_init</span>
+<span class="org-keyword">func</span> <span class="org-function-name">emacs_module_init</span><span class="org-rainbow-delimiters-depth-1">(</span>ert *<span class="org-type">C.struct_emacs_runtime</span><span class="org-rainbow-delimiters-depth-1">)</span> <span class="org-type">C.int</span> <span class="org-rainbow-delimiters-depth-1">{</span>
+  cfeat := C.<span class="org-function-name">CString</span><span class="org-rainbow-delimiters-depth-2">(</span><span class="org-string">"gmodule"</span><span class="org-rainbow-delimiters-depth-2">)</span>
+  fname := C.<span class="org-function-name">CString</span><span class="org-rainbow-delimiters-depth-2">(</span><span class="org-string">"go-version"</span><span class="org-rainbow-delimiters-depth-2">)</span>
+
+  <span class="org-keyword">defer</span> <span class="org-function-name">freeString</span><span class="org-rainbow-delimiters-depth-2">(</span>fname<span class="org-rainbow-delimiters-depth-2">)</span>
+  <span class="org-keyword">defer</span> <span class="org-function-name">freeString</span><span class="org-rainbow-delimiters-depth-2">(</span>cfeat<span class="org-rainbow-delimiters-depth-2">)</span>
+
+  C.<span class="org-function-name">provide</span><span class="org-rainbow-delimiters-depth-2">(</span>ert, cfeat<span class="org-rainbow-delimiters-depth-2">)</span>
+  C.<span class="org-function-name">fset</span><span class="org-rainbow-delimiters-depth-2">(</span>ert, fname, C.Fgo_version<span class="org-rainbow-delimiters-depth-2">)</span>;
+  <span class="org-keyword">return</span> <span class="org-highlight-numbers-number">0</span>
+<span class="org-rainbow-delimiters-depth-1">}</span>
+
+<span class="org-keyword">func</span> <span class="org-function-name">main</span><span class="org-rainbow-delimiters-depth-1">()</span> <span class="org-rainbow-delimiters-depth-1">{}</span>
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-org1b4e07d" class="outline-3">
+<h3 id="org1b4e07d"><span class="section-number-3">1.9</span> Go Breakdown</h3>
+<div class="outline-text-3" id="text-1-9">
+<p>
+We'll name our package main, even though we are not creating a command module
+it's important the package name is main, otherwise when we build a c-shared
+library it will build an ar archive, and not a dynamic library.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-go"><span class="org-keyword">package</span> main
+</pre>
+</div>
+
+<p>
+And in the comments section we include <code>emacs-module.h</code> . We also
+declare <code>int plugin_is_GPL_compatible</code>.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-go"><span class="org-comment-delimiter">/*</span>
+<span class="org-comment">#include &lt;emacs-module.h&gt;</span>
+<span class="org-comment">#include &lt;stdlib.h&gt;</span>
+<span class="org-comment">int plugin_is_GPL_compatible;</span>
+</pre>
+</div>
+
+<p>
+We need to provision our feature within emacs. To do this we need to call the
+Emacs <code>(provide)</code> function just like we did with the C module. Unfortunately we
+can not call C pointer functions directly from Go. But we can call them from C.
+So we'll create a helper C function that can access the struct function pointer we
+need. We'll do this in the special comment section just before <code>import "C"</code>.
+</p>
+<div class="org-src-container">
+<pre class="src src-go">static void
+<span class="org-function-name">provide</span> <span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">struct</span> emacs_runtime *ert, <span class="org-keyword">const</span> char *feature<span class="org-rainbow-delimiters-depth-1">)</span>
+<span class="org-rainbow-delimiters-depth-1">{</span>
+  emacs_env *env = ert-&gt;<span class="org-function-name">get_environment</span> <span class="org-rainbow-delimiters-depth-2">(</span>ert<span class="org-rainbow-delimiters-depth-2">)</span>;
+
+  emacs_value Qfeat = env-&gt;<span class="org-function-name">intern</span> <span class="org-rainbow-delimiters-depth-2">(</span>env, feature<span class="org-rainbow-delimiters-depth-2">)</span>;
+  emacs_value Qprovide = env-&gt;<span class="org-function-name">intern</span> <span class="org-rainbow-delimiters-depth-2">(</span>env, <span class="org-string">"provide"</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+  emacs_value args<span class="org-rainbow-delimiters-depth-2">[]</span> = <span class="org-rainbow-delimiters-depth-2">{</span> Qfeat <span class="org-rainbow-delimiters-depth-2">}</span>;
+
+  env-&gt;<span class="org-function-name">funcall</span> <span class="org-rainbow-delimiters-depth-2">(</span>env, Qprovide, <span class="org-highlight-numbers-number">1</span>, args<span class="org-rainbow-delimiters-depth-2">)</span>;
+<span class="org-rainbow-delimiters-depth-1">}</span>
+</pre>
+</div>
+
+<p>
+We declare our function in C even though cgo will generate a <code>gmodule.h</code> file. If
+we don't declare it now we won't be able to reference it from this file.
+</p>
+<div class="org-src-container">
+<pre class="src src-go">extern emacs_value <span class="org-function-name">Fgo_version</span><span class="org-rainbow-delimiters-depth-1">(</span>emacs_env* p0<span class="org-rainbow-delimiters-depth-1">)</span>;
+</pre>
+</div>
+
+<p>
+We create a helper function to fset our function within emacs, this function
+assumes our Emacs function will not be taking any arguements it's not ideal but
+it will work for the function we want to create.
+</p>
+<div class="org-src-container">
+<pre class="src src-go">static void
+<span class="org-function-name">fset</span> <span class="org-rainbow-delimiters-depth-1">(</span><span class="org-keyword">struct</span> emacs_runtime *ert, <span class="org-keyword">const</span> char *name, void *fn<span class="org-rainbow-delimiters-depth-1">)</span>
+<span class="org-rainbow-delimiters-depth-1">{</span>
+  emacs_env *env = ert-&gt;<span class="org-function-name">get_environment</span> <span class="org-rainbow-delimiters-depth-2">(</span>ert<span class="org-rainbow-delimiters-depth-2">)</span>;
+
+  emacs_value Qfn = env-&gt;<span class="org-function-name">make_function</span> <span class="org-rainbow-delimiters-depth-2">(</span>env, <span class="org-highlight-numbers-number">0</span>, <span class="org-highlight-numbers-number">0</span>, fn,
+          <span class="org-string">"Returns cmodule version"</span>, NULL<span class="org-rainbow-delimiters-depth-2">)</span>;
+
+  emacs_value Qfset = env-&gt;<span class="org-function-name">intern</span> <span class="org-rainbow-delimiters-depth-2">(</span>env, <span class="org-string">"fset"</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+  emacs_value Qsym = env-&gt;<span class="org-function-name">intern</span> <span class="org-rainbow-delimiters-depth-2">(</span>env, name<span class="org-rainbow-delimiters-depth-2">)</span>;
+
+  emacs_value fargs<span class="org-rainbow-delimiters-depth-2">[]</span> = <span class="org-rainbow-delimiters-depth-2">{</span> Qsym, Qfn <span class="org-rainbow-delimiters-depth-2">}</span>;
+  env-&gt;<span class="org-function-name">funcall</span> <span class="org-rainbow-delimiters-depth-2">(</span>env, Qfset, <span class="org-highlight-numbers-number">2</span>, fargs<span class="org-rainbow-delimiters-depth-2">)</span>;
+<span class="org-rainbow-delimiters-depth-1">}</span>
+</pre>
+</div>
+
+<p>
+Later on we'll need to convert the runtime version Go string into a Emacs string
+value. Since we can't call function pointers directly we'll create a helper
+function to handle this.
+</p>
+<div class="org-src-container">
+<pre class="src src-go">static emacs_value
+<span class="org-function-name">make_string</span> <span class="org-rainbow-delimiters-depth-1">(</span>emacs_env * env, <span class="org-keyword">const</span> char *s<span class="org-rainbow-delimiters-depth-1">)</span>
+<span class="org-rainbow-delimiters-depth-1">{</span>
+  <span class="org-keyword">return</span> env-&gt;<span class="org-function-name">make_string</span> <span class="org-rainbow-delimiters-depth-2">(</span>env, s, <span class="org-function-name">strlen</span><span class="org-rainbow-delimiters-depth-3">(</span>s<span class="org-rainbow-delimiters-depth-3">)</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+<span class="org-rainbow-delimiters-depth-1">}</span>
+</pre>
+</div>
+
+<p>
+We need to import the C package. The C package is special since it tells go to
+build with cgo. It's important that this package import comes first and it on
+it's own line. We need to close our C comment section just before <code>import "C"</code>
+there should be no new lines after closing the comment.
+</p>
+<div class="org-src-container">
+<pre class="src src-go">*/
+<span class="org-keyword">import</span> <span class="org-string">"C"</span>
+<span class="org-keyword">import</span> <span class="org-rainbow-delimiters-depth-1">(</span>
+       <span class="org-string">"runtime"</span>
+       <span class="org-string">"unsafe"</span>
+<span class="org-rainbow-delimiters-depth-1">)</span>
+</pre>
+</div>
+
+<p>
+We'll be using some C strings. Go will not be able to memory manage our C
+types. so we'll have to use some unsafe functions and free the strings
+ourselves. We'll create a <code>freeString</code> function to make this easier. <code>C.free</code> calls the
+free function  we included in <code>stdlib.h</code>. We also need to use the unsafe package
+to get the pointer.
+</p>
+<div class="org-src-container">
+<pre class="src src-go"><span class="org-keyword">func</span> <span class="org-function-name">freeString</span><span class="org-rainbow-delimiters-depth-1">(</span>cstring *<span class="org-type">C.char</span><span class="org-rainbow-delimiters-depth-1">)</span> <span class="org-rainbow-delimiters-depth-1">{</span>
+  C.<span class="org-function-name">free</span><span class="org-rainbow-delimiters-depth-2">(</span>unsafe.<span class="org-function-name">Pointer</span><span class="org-rainbow-delimiters-depth-3">(</span>cstring<span class="org-rainbow-delimiters-depth-3">)</span><span class="org-rainbow-delimiters-depth-2">)</span>
+<span class="org-rainbow-delimiters-depth-1">}</span>
+</pre>
+</div>
+
+<p>
+We declare the Go function. This is the Go code that will be exectuted when we
+call our Emacs function using <code>(go-version)</code> . Our function will return a type
+that emacs can evaluate. In this case the go runtime version as a string.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-go"><span class="org-comment-delimiter">//</span><span class="org-comment">export Fgo_version</span>
+<span class="org-keyword">func</span> <span class="org-function-name">Fgo_version</span><span class="org-rainbow-delimiters-depth-1">(</span>env *<span class="org-type">C.emacs_env</span><span class="org-rainbow-delimiters-depth-1">)</span> <span class="org-type">C.emacs_value</span> <span class="org-rainbow-delimiters-depth-1">{</span>
+  version := runtime.<span class="org-function-name">Version</span><span class="org-rainbow-delimiters-depth-2">()</span>
+  cversion := C.<span class="org-function-name">CString</span><span class="org-rainbow-delimiters-depth-2">(</span>version<span class="org-rainbow-delimiters-depth-2">)</span>
+  <span class="org-keyword">defer</span> <span class="org-function-name">freeString</span><span class="org-rainbow-delimiters-depth-2">(</span>cversion<span class="org-rainbow-delimiters-depth-2">)</span>
+  <span class="org-keyword">return</span> C.<span class="org-function-name">make_string</span><span class="org-rainbow-delimiters-depth-2">(</span>env, cversion<span class="org-rainbow-delimiters-depth-2">)</span>
+<span class="org-rainbow-delimiters-depth-1">}</span>
+</pre>
+</div>
+
+<p>
+Next we create our Emacs entry point. and we'll use <code>//export</code> directive to tell
+cgo we want to export this as a dynamic function. This is the same as if we
+wrote <code>extern int emacs_module_init(struct emacs_runtime* p0);</code> in C, in fact Go
+will produce this declaration when it creates a C header file for our dynamic library.
+</p>
+
+<p>
+If we were to return the Go type <code>int</code> instead of <code>C.int</code> it would create a
+compiler error since the signature would no longer match the Emacs one.
+</p>
+<div class="org-src-container">
+<pre class="src src-go"><span class="org-comment-delimiter">//</span><span class="org-comment">export emacs_module_init</span>
+<span class="org-keyword">func</span> <span class="org-function-name">emacs_module_init</span><span class="org-rainbow-delimiters-depth-1">(</span>ert *<span class="org-type">C.struct_emacs_runtime</span><span class="org-rainbow-delimiters-depth-1">)</span> <span class="org-type">C.int</span> <span class="org-rainbow-delimiters-depth-1">{</span>
+  cfeat := C.<span class="org-function-name">CString</span><span class="org-rainbow-delimiters-depth-2">(</span><span class="org-string">"gmodule"</span><span class="org-rainbow-delimiters-depth-2">)</span>
+  fname := C.<span class="org-function-name">CString</span><span class="org-rainbow-delimiters-depth-2">(</span><span class="org-string">"go-version"</span><span class="org-rainbow-delimiters-depth-2">)</span>
+
+  <span class="org-keyword">defer</span> <span class="org-function-name">freeString</span><span class="org-rainbow-delimiters-depth-2">(</span>fname<span class="org-rainbow-delimiters-depth-2">)</span>
+  <span class="org-keyword">defer</span> <span class="org-function-name">freeString</span><span class="org-rainbow-delimiters-depth-2">(</span>cfeat<span class="org-rainbow-delimiters-depth-2">)</span>
+
+  C.<span class="org-function-name">provide</span><span class="org-rainbow-delimiters-depth-2">(</span>ert, cfeat<span class="org-rainbow-delimiters-depth-2">)</span>
+  C.<span class="org-function-name">fset</span><span class="org-rainbow-delimiters-depth-2">(</span>ert, fname, C.Fgo_version<span class="org-rainbow-delimiters-depth-2">)</span>;
+  <span class="org-keyword">return</span> <span class="org-highlight-numbers-number">0</span>
+<span class="org-rainbow-delimiters-depth-1">}</span>
+</pre>
+</div>
+
+
+<p>
+Even though this is not a command package. We need to include a main function.
+Due to the fact we are exporting go functions using <code>//export</code> . We can simply
+stub one out like so.
+</p>
+<div class="org-src-container">
+<pre class="src src-go"><span class="org-keyword">func</span> <span class="org-function-name">main</span><span class="org-rainbow-delimiters-depth-1">()</span> <span class="org-rainbow-delimiters-depth-1">{}</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgd8e6fb6" class="outline-3">
+<h3 id="orgd8e6fb6"><span class="section-number-3">1.10</span> Building the Go module</h3>
+<div class="outline-text-3" id="text-1-10">
+<p>
+We export our include flags and then manually build our so file.
+</p>
+<div class="org-src-container">
+<pre class="src src-shell"><span class="org-builtin">export</span> <span class="org-variable-name">CGO_CPPFLAGS</span>=<span class="org-string">"-I $PWD/emacs-25.2/src"</span>
+go build -buildmode=c-shared -o lib/gmodule.so src/main.go
+</pre>
+</div>
+
+<p>
+You can also set the CFLAGS in your go files using cgo directives. For more
+information on cgo directives and cgo see the <a href="https://golang.org/cmd/cgo/">CGO</a> web page.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org1ae30cc" class="outline-3">
+<h3 id="org1ae30cc"><span class="section-number-3">1.11</span> Test the Go module</h3>
+<div class="outline-text-3" id="text-1-11">
+<div class="org-src-container">
+<pre class="src src-bash">emacs -Q -L ./lib -batch -l <span class="org-string">"gmodule"</span> --eval <span class="org-string">'(message (go-version))'</span>
+</pre>
+</div>
+
+<pre class="example">
+go1.9
+
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orga425747" class="outline-2 container">
+<h2 id="orga425747"><span class="section-number-2">2</span> Automating this guide.</h2>
+<div class="outline-text-2" id="text-2">
+<p>
+This whole guide can be run without any manual input using.
+</p>
 <pre class="example">
 (org-babel-tangle)
 (org-babel-execute-buffer)
@@ -389,7 +711,7 @@ This whole guide can be run without any manual input using.
 </div>
 </div>
 <div id="postamble" class="status">
-<p class="date">Created: 2017-09-05 Tue 18:09</p>
+<p class="date">Created: 2017-09-06 Wed 12:59</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>
