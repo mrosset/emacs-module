@@ -3,9 +3,18 @@
     display: grid;
     grid-template-columns: 1fr 3fr;
     grid-template-areas: "nav header"
-                           "sidebar content"
-                           "sidebar content"
-                           "sidebar content";
+                           "nav content"
+                           "nav content"
+                           "nav content"
+                           "nav content"
+                           "nav content"
+                           "nav content"
+                           "nav content"
+                           "nav content"
+                           "nav content"
+                           "nav content"
+                           "nav content"
+                           "nav content";
     grid-gap: 15x;
   }
 
@@ -25,14 +34,6 @@ body {
   grid-template-columns: 1fr;
   grid-template-rows: auto 1fr;
   grid-template-areas: "body" "footer";
-}
-
-.container {
-  width: 95%;
-}
-
-.sidebar {
-  grid-area: sidebar;
 }
 
 #table-of-contents {

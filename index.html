@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2017-09-06 Wed 12:59 -->
+<!-- 2017-09-07 Thu 02:05 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Writing Emacs modules with Go</title>
@@ -68,22 +68,11 @@ for the JavaScript code in this tag.
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#orga082fcf">1. Introduction</a>
-<ul>
-<li><a href="#org0f22e9d">1.1. C Emacs module</a></li>
-<li><a href="#orgb0e64d1">1.2. <code>src/cmodule.c</code></a></li>
-<li><a href="#org6729874">1.3. C Breakdown</a></li>
-<li><a href="#org8d5d2cb">1.4. Compiling the module</a></li>
-<li><a href="#org154efdc">1.5. Testing C module with Emacs.</a></li>
-<li><a href="#org3e14ff1">1.6. C summary</a></li>
-<li><a href="#org02d707a">1.7. Go Emacs Module</a></li>
-<li><a href="#org60783bd">1.8. <code>src/main.go</code></a></li>
-<li><a href="#org1b4e07d">1.9. Go Breakdown</a></li>
-<li><a href="#orgd8e6fb6">1.10. Building the Go module</a></li>
-<li><a href="#org1ae30cc">1.11. Test the Go module</a></li>
-</ul>
-</li>
-<li><a href="#orga425747">2. Automating this guide.</a></li>
+<li><a href="#org18d5fd2">1. Introduction</a></li>
+<li><a href="#orgd5798bb">2. C Emacs module</a></li>
+<li><a href="#org9534ed4">3. Go Emacs Module</a></li>
+<li><a href="#orga0f31af">4. Automating this guide.</a></li>
+<li><a href="#org6b9a92a">5. Todo's</a></li>
 </ul>
 </div>
 </div>
@@ -91,8 +80,9 @@ for the JavaScript code in this tag.
 <img src="img/org-mode-unicorn-logo_2017-09-05_10-16-22.png" alt="org-mode-unicorn-logo_2017-09-05_10-16-22.png" width="40px" />This page is generated using <code>(org-html-export-to-html)</code> if you prefer using
 <code>org-mode</code> you can get the org file from<a href="https://raw.githubusercontent.com/mrosset/emacs-module/master/index.org"> GitHub</a>.
 </p>
-<div id="outline-container-orga082fcf" class="outline-2 container">
-<h2 id="orga082fcf"><span class="section-number-2">1</span> Introduction</h2>
+
+<div id="outline-container-org18d5fd2" class="outline-2">
+<h2 id="org18d5fd2"><span class="section-number-2">1</span> Introduction</h2>
 <div class="outline-text-2" id="text-1">
 <p>
 This page is currently complete, but should still be concidered a draft. If you
@@ -108,10 +98,11 @@ a huge difference between the two. But understanding the C module well help when
 we write our Go module.
 </p>
 </div>
+</div>
 
-<div id="outline-container-org0f22e9d" class="outline-3">
-<h3 id="org0f22e9d"><span class="section-number-3">1.1</span> C Emacs module</h3>
-<div class="outline-text-3" id="text-1-1">
+<div id="outline-container-orgd5798bb" class="outline-2">
+<h2 id="orgd5798bb"><span class="section-number-2">2</span> C Emacs module</h2>
+<div class="outline-text-2" id="text-2">
 <p>
 First create a top level directory to house our project . I like to create my
 projects in <code>$HOME/src</code> pick whichever location suits you. Once we
@@ -129,24 +120,9 @@ Will be from that directory.
 To compile a Emacs modules we need the <code>emacs-module.h</code> header file. The header
 file is found in the <code>src</code> directory of the Emacs source tarball. It's possible your
 OS provides this already. However this guide is OS agnostic and we'll assume
-that the header file has not been installed.
+that the header file has not been installed. Since we just need the header and
+not all of the emacs tarball we'll download it from the git repository.
 </p>
-
-<p>
-Download the emacs source tarball.
-</p>
-<div class="org-src-container">
-<pre class="src src-shell">wget -c https://mirrors.kernel.org/gnu/emacs/emacs-25.2.tar.gz
-</pre>
-</div>
-
-<p>
-And then extract it.
-</p>
-<div class="org-src-container">
-<pre class="src src-shell">tar xf emacs-25.2.tar.gz
-</pre>
-</div>
 
 <p>
 Create the src directory
@@ -155,12 +131,19 @@ Create the src directory
 <pre class="src src-shell">mkdir src
 </pre>
 </div>
+
+<p>
+Download the emacs header file
+</p>
+<div class="org-src-container">
+<pre class="src src-shell">wget <span class="org-string">"http://git.savannah.gnu.org/cgit/emacs.git/plain/src/emacs-module.h?h=emacs-25.2"</span> -O src/emacs-module.h
+</pre>
 </div>
 </div>
 
-<div id="outline-container-orgb0e64d1" class="outline-3">
-<h3 id="orgb0e64d1"><span class="section-number-3">1.2</span> <code>src/cmodule.c</code></h3>
-<div class="outline-text-3" id="text-1-2">
+<div id="outline-container-orgf04c816" class="outline-3">
+<h3 id="orgf04c816"><span class="section-number-3">2.1</span> <code>src/cmodule.c</code></h3>
+<div class="outline-text-3" id="text-2-1">
 <p>
 If you are using <code>org-mode</code> you can generate this file automatically with <code>C-c C-v
 t</code> or <code>M-x org-babel-tangle</code> .
@@ -212,9 +195,9 @@ env-&gt;funcall<span class="org-rainbow-delimiters-depth-2">(</span>env, Qfset, 
 </div>
 </div>
 
-<div id="outline-container-org6729874" class="outline-3">
-<h3 id="org6729874"><span class="section-number-3">1.3</span> C Breakdown</h3>
-<div class="outline-text-3" id="text-1-3">
+<div id="outline-container-orgcffa5b2" class="outline-3">
+<h3 id="orgcffa5b2"><span class="section-number-3">2.2</span> C Breakdown</h3>
+<div class="outline-text-3" id="text-2-2">
 <p>
 First we include <code>emacs-module.h</code> header file. We'll need this for the Emacs
 declaration types.
@@ -313,14 +296,14 @@ env-&gt;funcall<span class="org-rainbow-delimiters-depth-1">(</span>env, Qfset, 
 </div>
 </div>
 
-<div id="outline-container-org8d5d2cb" class="outline-3">
-<h3 id="org8d5d2cb"><span class="section-number-3">1.4</span> Compiling the module</h3>
-<div class="outline-text-3" id="text-1-4">
+<div id="outline-container-org602877f" class="outline-3">
+<h3 id="org602877f"><span class="section-number-3">2.3</span> Compiling the module</h3>
+<div class="outline-text-3" id="text-2-3">
 <p>
 Create a lib directory to hold our shared libraries.
 </p>
 <div class="org-src-container">
-<pre class="src src-shell">mkdir lib
+<pre class="src src-shell">mkdir -p lib
 </pre>
 </div>
 
@@ -328,15 +311,15 @@ Create a lib directory to hold our shared libraries.
 Now we compile <code>src/cmodule.c</code> as a shared C library.
 </p>
 <div class="org-src-container">
-<pre class="src src-shell">gcc -I emacs-25.2/src -fPIC -shared src/cmodule.c -o lib/cmodule.so
+<pre class="src src-shell">gcc -I src -fPIC -shared src/cmodule.c -o lib/cmodule.so
 </pre>
 </div>
 </div>
 </div>
 
-<div id="outline-container-org154efdc" class="outline-3">
-<h3 id="org154efdc"><span class="section-number-3">1.5</span> Testing C module with Emacs.</h3>
-<div class="outline-text-3" id="text-1-5">
+<div id="outline-container-orgb41a5f6" class="outline-3">
+<h3 id="orgb41a5f6"><span class="section-number-3">2.4</span> Testing C module with Emacs.</h3>
+<div class="outline-text-3" id="text-2-4">
 <p>
 To test our module we'll start Emacs in batch mode then call our custom function.
 We'll use Emacs message function to print the value to stdout.
@@ -348,9 +331,9 @@ We'll use Emacs message function to print the value to stdout.
 </div>
 </div>
 
-<div id="outline-container-org3e14ff1" class="outline-3">
-<h3 id="org3e14ff1"><span class="section-number-3">1.6</span> C summary</h3>
-<div class="outline-text-3" id="text-1-6">
+<div id="outline-container-org821f016" class="outline-3">
+<h3 id="org821f016"><span class="section-number-3">2.5</span> C summary</h3>
+<div class="outline-text-3" id="text-2-5">
 <p>
 Writing a Emacs module in C is straight forward. These are the basic things you
 need to create a Emacs module.
@@ -358,8 +341,8 @@ need to create a Emacs module.
 
 <ol class="org-ol">
 <li>emacs-module.h</li>
-<li>plugin_is_GPL_compatibe symbol</li>
-<li>emacs_module_init entry point</li>
+<li>plugin<sub>is</sub><sub>GPL</sub><sub>compatibe</sub> symbol</li>
+<li>emacs<sub>module</sub><sub>init</sub> entry point</li>
 <li>Provision module feature within Emacs</li>
 <li>fset function within Emacs</li>
 </ol>
@@ -381,21 +364,21 @@ module.
 </ol>
 </div>
 </div>
+</div>
 
-<div id="outline-container-org02d707a" class="outline-3">
-<h3 id="org02d707a"><span class="section-number-3">1.7</span> Go Emacs Module</h3>
-<div class="outline-text-3" id="text-1-7">
+<div id="outline-container-org9534ed4" class="outline-2">
+<h2 id="org9534ed4"><span class="section-number-2">3</span> Go Emacs Module</h2>
+<div class="outline-text-2" id="text-3">
 <p>
 We'll now make a similar module, but this time we'll access the Go runtime and
 get the version of go we are using. We'll have to do some boiler plating and some C
 type conversions but we can for the most part stick to go.
 </p>
 </div>
-</div>
 
-<div id="outline-container-org60783bd" class="outline-3">
-<h3 id="org60783bd"><span class="section-number-3">1.8</span> <code>src/main.go</code></h3>
-<div class="outline-text-3" id="text-1-8">
+<div id="outline-container-orgead9075" class="outline-3">
+<h3 id="orgead9075"><span class="section-number-3">3.1</span> <code>src/main.go</code></h3>
+<div class="outline-text-3" id="text-3-1">
 <p>
 Create and edit file <code>src/main.go</code>. We'll do a breakdown of this file in the
 next section.
@@ -428,7 +411,7 @@ next section.
 <span class="org-comment">  emacs_env *env = ert-&gt;get_environment (ert);</span>
 
 <span class="org-comment">  emacs_value Qfn = env-&gt;make_function (env, 0, 0, fn,</span>
-<span class="org-comment">          "Returns cmodule version", NULL);</span>
+<span class="org-comment">          "Return string describing the go runtime version.", NULL);</span>
 
 <span class="org-comment">  emacs_value Qfset = env-&gt;intern (env, "fset");</span>
 <span class="org-comment">  emacs_value Qsym = env-&gt;intern (env, name);</span>
@@ -480,9 +463,9 @@ next section.
 </div>
 </div>
 </div>
-<div id="outline-container-org1b4e07d" class="outline-3">
-<h3 id="org1b4e07d"><span class="section-number-3">1.9</span> Go Breakdown</h3>
-<div class="outline-text-3" id="text-1-9">
+<div id="outline-container-orga026bff" class="outline-3">
+<h3 id="orga026bff"><span class="section-number-3">3.2</span> Go Breakdown</h3>
+<div class="outline-text-3" id="text-3-2">
 <p>
 We'll name our package main, even though we are not creating a command module
 it's important the package name is main, otherwise when we build a c-shared
@@ -541,7 +524,7 @@ we don't declare it now we won't be able to reference it from this file.
 <p>
 We create a helper function to fset our function within emacs, this function
 assumes our Emacs function will not be taking any arguements it's not ideal but
-it will work for the function we want to create.
+it will work for the function we want to create. We also hardcode our doc
 </p>
 <div class="org-src-container">
 <pre class="src src-go">static void
@@ -550,7 +533,7 @@ it will work for the function we want to create.
   emacs_env *env = ert-&gt;<span class="org-function-name">get_environment</span> <span class="org-rainbow-delimiters-depth-2">(</span>ert<span class="org-rainbow-delimiters-depth-2">)</span>;
 
   emacs_value Qfn = env-&gt;<span class="org-function-name">make_function</span> <span class="org-rainbow-delimiters-depth-2">(</span>env, <span class="org-highlight-numbers-number">0</span>, <span class="org-highlight-numbers-number">0</span>, fn,
-          <span class="org-string">"Returns cmodule version"</span>, NULL<span class="org-rainbow-delimiters-depth-2">)</span>;
+          <span class="org-string">"Return string describing the go runtime version."</span>, NULL<span class="org-rainbow-delimiters-depth-2">)</span>;
 
   emacs_value Qfset = env-&gt;<span class="org-function-name">intern</span> <span class="org-rainbow-delimiters-depth-2">(</span>env, <span class="org-string">"fset"</span><span class="org-rainbow-delimiters-depth-2">)</span>;
   emacs_value Qsym = env-&gt;<span class="org-function-name">intern</span> <span class="org-rainbow-delimiters-depth-2">(</span>env, name<span class="org-rainbow-delimiters-depth-2">)</span>;
@@ -662,28 +645,21 @@ stub one out like so.
 </div>
 </div>
 
-<div id="outline-container-orgd8e6fb6" class="outline-3">
-<h3 id="orgd8e6fb6"><span class="section-number-3">1.10</span> Building the Go module</h3>
-<div class="outline-text-3" id="text-1-10">
+<div id="outline-container-orgc31e2ab" class="outline-3">
+<h3 id="orgc31e2ab"><span class="section-number-3">3.3</span> Building the Go module</h3>
+<div class="outline-text-3" id="text-3-3">
 <p>
 We export our include flags and then manually build our so file.
 </p>
 <div class="org-src-container">
-<pre class="src src-shell"><span class="org-builtin">export</span> <span class="org-variable-name">CGO_CPPFLAGS</span>=<span class="org-string">"-I $PWD/emacs-25.2/src"</span>
-go build -buildmode=c-shared -o lib/gmodule.so src/main.go
+<pre class="src src-shell">go build -buildmode=c-shared -o lib/gmodule.so src/main.go
 </pre>
 </div>
-
-<p>
-You can also set the CFLAGS in your go files using cgo directives. For more
-information on cgo directives and cgo see the <a href="https://golang.org/cmd/cgo/">CGO</a> web page.
-</p>
 </div>
 </div>
-
-<div id="outline-container-org1ae30cc" class="outline-3">
-<h3 id="org1ae30cc"><span class="section-number-3">1.11</span> Test the Go module</h3>
-<div class="outline-text-3" id="text-1-11">
+<div id="outline-container-org4c743a5" class="outline-3">
+<h3 id="org4c743a5"><span class="section-number-3">3.4</span> Test the Go module</h3>
+<div class="outline-text-3" id="text-3-4">
 <div class="org-src-container">
 <pre class="src src-bash">emacs -Q -L ./lib -batch -l <span class="org-string">"gmodule"</span> --eval <span class="org-string">'(message (go-version))'</span>
 </pre>
@@ -697,9 +673,9 @@ go1.9
 </div>
 </div>
 
-<div id="outline-container-orga425747" class="outline-2 container">
-<h2 id="orga425747"><span class="section-number-2">2</span> Automating this guide.</h2>
-<div class="outline-text-2" id="text-2">
+<div id="outline-container-orga0f31af" class="outline-2">
+<h2 id="orga0f31af"><span class="section-number-2">4</span> Automating this guide.</h2>
+<div class="outline-text-2" id="text-4">
 <p>
 This whole guide can be run without any manual input using.
 </p>
@@ -709,9 +685,32 @@ This whole guide can be run without any manual input using.
 </pre>
 </div>
 </div>
+<div id="outline-container-org6b9a92a" class="outline-2">
+<h2 id="org6b9a92a"><span class="section-number-2">5</span> Todo's</h2>
+<div class="outline-text-2" id="text-5">
+</div><div id="outline-container-org68d08e5" class="outline-3">
+<h3 id="org68d08e5"><span class="section-number-3">5.1</span> <span class="done DONE">DONE</span> emacs-module.h</h3>
+<div class="outline-text-3" id="text-5-1">
+<p>
+The emacs tarball is pretty large. figure out how we can download the header
+file and still be GPL compliant.
+</p>
+</div>
+</div>
+<div id="outline-container-org0212447" class="outline-3">
+<h3 id="org0212447"><span class="section-number-3">5.2</span> <span class="todo TODO">TODO</span> GPL compliance</h3>
+<div class="outline-text-3" id="text-5-2">
+<p>
+Find out what GPL implications might arise from writing packages in Go. Go uses
+a claused BSD license not sure of hosting the go runtime within emacs breaks GPL
+or not.
+</p>
+</div>
+</div>
+</div>
 </div>
 <div id="postamble" class="status">
-<p class="date">Created: 2017-09-06 Wed 12:59</p>
+<p class="date">Created: 2017-09-07 Thu 02:05</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>

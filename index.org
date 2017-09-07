@@ -2,7 +2,7 @@
 # org-html-htmlize-output-type css;
 
 #+EMAIL: mike.rosset@gmail.com
-#+OPTIONS: toc:t num:5 H:5 ^:nil pri:nil html-style:nil
+#+OPTIONS: toc:1 html-style:nil
 
 #+HTML_HEAD: <meta name="viewport" content="width=device-width, initial-scale=1.0"/ >
 #+HTML_HEAD: <link rel="stylesheet" media="screen" href="https://fontlibrary.org/face/go-mono" type="text/css"/>
@@ -16,11 +16,8 @@
 #+ATTR_HTML: :width 40px
 [[file:img/org-mode-unicorn-logo_2017-09-05_10-16-22.png]]This page is generated using ~(org-html-export-to-html)~ if you prefer using
 ~org-mode~ you can get the org file from[[https://raw.githubusercontent.com/mrosset/emacs-module/master/index.org][ GitHub]].
-* Introduction
-:PROPERTIES:
-:HTML_CONTAINER_CLASS: container
-:END:
 
+* Introduction
 This page is currently complete, but should still be concidered a draft. If you
 find any grammar, spelling or technical errors. Please create an issue on [[https://github.com/mrosset/emacs-module][GitHub]]
 
@@ -31,7 +28,7 @@ creating first a simple module in C and then a simple module in Go. There is not
 a huge difference between the two. But understanding the C module well help when
 we write our Go module.
 
-** C Emacs module
+* C Emacs module
 First create a top level directory to house our project . I like to create my
 projects in ~$HOME/src~ pick whichever location suits you. Once we
 create the directory we'll ~cd~ into it. And any commands we run from now on.
@@ -47,21 +44,17 @@ cd ~/src/emacs-module
 To compile a Emacs modules we need the ~emacs-module.h~ header file. The header
 file is found in the ~src~ directory of the Emacs source tarball. It's possible your
 OS provides this already. However this guide is OS agnostic and we'll assume
-that the header file has not been installed.
-
-Download the emacs source tarball.
-#+BEGIN_SRC shell :results silent :dir ~/src/emacs-module
-wget -c https://mirrors.kernel.org/gnu/emacs/emacs-25.2.tar.gz
-#+END_SRC
-
-And then extract it.
-#+BEGIN_SRC shell :results silent :dir ~/src/emacs-module
-tar xf emacs-25.2.tar.gz
-#+END_SRC
+that the header file has not been installed. Since we just need the header and
+not all of the emacs tarball we'll download it from the git repository.
 
 Create the src directory
 #+BEGIN_SRC shell :results silent :dir ~/src/emacs-module
 mkdir src
+#+END_SRC
+
+Download the emacs header file
+#+BEGIN_SRC shell :results silent :dir ~/src/emacs-module
+wget "http://git.savannah.gnu.org/cgit/emacs.git/plain/src/emacs-module.h?h=emacs-25.2" -O src/emacs-module.h
 #+END_SRC
 
 ** ~src/cmodule.c~
@@ -140,6 +133,8 @@ emacs_value pargs[] = { Qfeat };
 env->funcall (env, Qprovide, 1, pargs);
 #+END_SRC
 
+#+RESULTS:
+
 Next we declare our function and then use Emacs fset to define it. In short we
 are telling Emacs that whenever we call ~(cmodule-verion)~ to execute
 the ~Fcmodule_version~ C function.
@@ -157,15 +152,17 @@ return 0;
 }
 #+END_SRC
 
+#+RESULTS:
+
 ** Compiling the module
 Create a lib directory to hold our shared libraries.
 #+BEGIN_SRC shell :results silent
-mkdir lib
+mkdir -p lib
 #+END_SRC
 
 Now we compile ~src/cmodule.c~ as a shared C library.
 #+BEGIN_SRC shell :results silent
-gcc -I emacs-25.2/src -fPIC -shared src/cmodule.c -o lib/cmodule.so
+gcc -I src -fPIC -shared src/cmodule.c -o lib/cmodule.so
 #+END_SRC
 
 ** Testing C module with Emacs.
@@ -176,7 +173,6 @@ emacs -Q -L ./lib -batch -l cmodule --eval "(message (cmodule-version))"
 #+END_SRC
 
 #+RESULTS:
-: 0.1
 
 ** C summary
 Writing a Emacs module in C is straight forward. These are the basic things you
@@ -198,7 +194,7 @@ module.
 1. [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Dynamic-Modules.html][Dynamic Modules - GNU Emacs Lisp Reference Manual]]
 2. [[https://github.com/jkitchin/emacs-modules][https://github.com/jkitchin/emacs-modules]]
 
-** Go Emacs Module
+* Go Emacs Module
 We'll now make a similar module, but this time we'll access the Go runtime and
 get the version of go we are using. We'll have to do some boiler plating and some C
 type conversions but we can for the most part stick to go.
@@ -254,7 +250,7 @@ extern emacs_value Fgo_version(emacs_env* p0);
 
 We create a helper function to fset our function within emacs, this function
 assumes our Emacs function will not be taking any arguements it's not ideal but
-it will work for the function we want to create.
+it will work for the function we want to create. We also hardcode our doc
 #+BEGIN_SRC go :main no :tangle src/main.go
   static void
   fset (struct emacs_runtime *ert, const char *name, void *fn)
@@ -262,7 +258,7 @@ it will work for the function we want to create.
     emacs_env *env = ert->get_environment (ert);
 
     emacs_value Qfn = env->make_function (env, 0, 0, fn,
-            "Returns cmodule version", NULL);
+            "Return string describing the go runtime version.", NULL);
 
     emacs_value Qfset = env->intern (env, "fset");
     emacs_value Qsym = env->intern (env, name);
@@ -358,15 +354,10 @@ func main() {}
 
 We export our include flags and then manually build our so file.
 #+BEGIN_SRC shell
-export CGO_CPPFLAGS="-I $PWD/emacs-25.2/src"
 go build -buildmode=c-shared -o lib/gmodule.so src/main.go
 #+END_SRC
 
 #+RESULTS:
-
-You can also set the CFLAGS in your go files using cgo directives. For more
-information on cgo directives and cgo see the [[https://golang.org/cmd/cgo/][CGO]] web page.
-
 ** Test the Go module
 #+BEGIN_SRC bash :exports both :prologue exec 2>&1
 emacs -Q -L ./lib -batch -l "gmodule" --eval '(message (go-version))'
@@ -376,12 +367,17 @@ emacs -Q -L ./lib -batch -l "gmodule" --eval '(message (go-version))'
 : go1.9
 
 * Automating this guide.
-:PROPERTIES:
-:HTML_CONTAINER_CLASS: container
-:END:
-
 This whole guide can be run without any manual input using.
 #+BEGIN_EXAMPLE emacs-lisp
 (org-babel-tangle)
 (org-babel-execute-buffer)
 #+END_EXAMPLE
+* Todo's
+** DONE emacs-module.h
+CLOSED: [2017-09-07 Thu 00:41]
+The emacs tarball is pretty large. figure out how we can download the header
+file and still be GPL compliant.
+** TODO GPL compliance
+Find out what GPL implications might arise from writing packages in Go. Go uses
+a claused BSD license not sure of hosting the go runtime within emacs breaks GPL
+or not.
