@@ -18,8 +18,8 @@
 ~org-mode~ you can get the org file from[[https://raw.githubusercontent.com/mrosset/emacs-module/master/index.org][ GitHub]].
 
 * Introduction
-This page is currently complete, but should still be concidered a draft. If you
-find any grammar, spelling or technical errors. Please create an issue on [[https://github.com/mrosset/emacs-module][GitHub]]
+This page is currently complete, but should still be considered a draft. If you
+find any grammar, spelling or technical errors, please create an issue on [[https://github.com/mrosset/emacs-module][GitHub]]
 
 As of Emacs version ~25.1~ Emacs has support for loading dynamic modules. And as
 of version ~1.5~ Go supports building packages as dynamic shared libraries.
@@ -173,6 +173,7 @@ emacs -Q -L ./lib -batch -l cmodule --eval "(message (cmodule-version))"
 #+END_SRC
 
 #+RESULTS:
+: 0.1
 
 ** C summary
 Writing a Emacs module in C is straight forward. These are the basic things you

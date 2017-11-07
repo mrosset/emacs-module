@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2017-09-07 Thu 02:05 -->
+<!-- 2017-11-06 Mon 19:54 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Writing Emacs modules with Go</title>
@@ -68,11 +68,11 @@ for the JavaScript code in this tag.
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#org18d5fd2">1. Introduction</a></li>
-<li><a href="#orgd5798bb">2. C Emacs module</a></li>
-<li><a href="#org9534ed4">3. Go Emacs Module</a></li>
-<li><a href="#orga0f31af">4. Automating this guide.</a></li>
-<li><a href="#org6b9a92a">5. Todo's</a></li>
+<li><a href="#org397a6b6">1. Introduction</a></li>
+<li><a href="#org38fb361">2. C Emacs module</a></li>
+<li><a href="#org9689966">3. Go Emacs Module</a></li>
+<li><a href="#orgf6f1cbd">4. Automating this guide.</a></li>
+<li><a href="#org3f459d8">5. Todo's</a></li>
 </ul>
 </div>
 </div>
@@ -81,12 +81,12 @@ for the JavaScript code in this tag.
 <code>org-mode</code> you can get the org file from<a href="https://raw.githubusercontent.com/mrosset/emacs-module/master/index.org"> GitHub</a>.
 </p>
 
-<div id="outline-container-org18d5fd2" class="outline-2">
-<h2 id="org18d5fd2"><span class="section-number-2">1</span> Introduction</h2>
+<div id="outline-container-org397a6b6" class="outline-2">
+<h2 id="org397a6b6"><span class="section-number-2">1</span> Introduction</h2>
 <div class="outline-text-2" id="text-1">
 <p>
-This page is currently complete, but should still be concidered a draft. If you
-find any grammar, spelling or technical errors. Please create an issue on <a href="https://github.com/mrosset/emacs-module">GitHub</a>
+This page is currently complete, but should still be considered a draft. If you
+find any grammar, spelling or technical errors, please create an issue on <a href="https://github.com/mrosset/emacs-module">GitHub</a>
 </p>
 
 <p>
@@ -100,8 +100,8 @@ we write our Go module.
 </div>
 </div>
 
-<div id="outline-container-orgd5798bb" class="outline-2">
-<h2 id="orgd5798bb"><span class="section-number-2">2</span> C Emacs module</h2>
+<div id="outline-container-org38fb361" class="outline-2">
+<h2 id="org38fb361"><span class="section-number-2">2</span> C Emacs module</h2>
 <div class="outline-text-2" id="text-2">
 <p>
 First create a top level directory to house our project . I like to create my
@@ -141,8 +141,8 @@ Download the emacs header file
 </div>
 </div>
 
-<div id="outline-container-orgf04c816" class="outline-3">
-<h3 id="orgf04c816"><span class="section-number-3">2.1</span> <code>src/cmodule.c</code></h3>
+<div id="outline-container-orge655b8c" class="outline-3">
+<h3 id="orge655b8c"><span class="section-number-3">2.1</span> <code>src/cmodule.c</code></h3>
 <div class="outline-text-3" id="text-2-1">
 <p>
 If you are using <code>org-mode</code> you can generate this file automatically with <code>C-c C-v
@@ -195,8 +195,8 @@ env-&gt;funcall<span class="org-rainbow-delimiters-depth-2">(</span>env, Qfset, 
 </div>
 </div>
 
-<div id="outline-container-orgcffa5b2" class="outline-3">
-<h3 id="orgcffa5b2"><span class="section-number-3">2.2</span> C Breakdown</h3>
+<div id="outline-container-org3ab49a6" class="outline-3">
+<h3 id="org3ab49a6"><span class="section-number-3">2.2</span> C Breakdown</h3>
 <div class="outline-text-3" id="text-2-2">
 <p>
 First we include <code>emacs-module.h</code> header file. We'll need this for the Emacs
@@ -296,8 +296,8 @@ env-&gt;funcall<span class="org-rainbow-delimiters-depth-1">(</span>env, Qfset, 
 </div>
 </div>
 
-<div id="outline-container-org602877f" class="outline-3">
-<h3 id="org602877f"><span class="section-number-3">2.3</span> Compiling the module</h3>
+<div id="outline-container-org9491333" class="outline-3">
+<h3 id="org9491333"><span class="section-number-3">2.3</span> Compiling the module</h3>
 <div class="outline-text-3" id="text-2-3">
 <p>
 Create a lib directory to hold our shared libraries.
@@ -317,8 +317,8 @@ Now we compile <code>src/cmodule.c</code> as a shared C library.
 </div>
 </div>
 
-<div id="outline-container-orgb41a5f6" class="outline-3">
-<h3 id="orgb41a5f6"><span class="section-number-3">2.4</span> Testing C module with Emacs.</h3>
+<div id="outline-container-org3a9173e" class="outline-3">
+<h3 id="org3a9173e"><span class="section-number-3">2.4</span> Testing C module with Emacs.</h3>
 <div class="outline-text-3" id="text-2-4">
 <p>
 To test our module we'll start Emacs in batch mode then call our custom function.
@@ -328,11 +328,16 @@ We'll use Emacs message function to print the value to stdout.
 <pre class="src src-bash">emacs -Q -L ./lib -batch -l cmodule --eval <span class="org-string">"(message (cmodule-version))"</span>
 </pre>
 </div>
+
+<pre class="example">
+0.1
+
+</pre>
 </div>
 </div>
 
-<div id="outline-container-org821f016" class="outline-3">
-<h3 id="org821f016"><span class="section-number-3">2.5</span> C summary</h3>
+<div id="outline-container-orgc3055b8" class="outline-3">
+<h3 id="orgc3055b8"><span class="section-number-3">2.5</span> C summary</h3>
 <div class="outline-text-3" id="text-2-5">
 <p>
 Writing a Emacs module in C is straight forward. These are the basic things you
@@ -360,14 +365,14 @@ module.
 
 <ol class="org-ol">
 <li><a href="https://www.gnu.org/software/emacs/manual/html_node/elisp/Dynamic-Modules.html">Dynamic Modules - GNU Emacs Lisp Reference Manual</a></li>
-<li><a href="https://github.com/jkitchin/emacs-modules"><a href="https://github.com/jkitchin/emacs-modules">https://github.com/jkitchin/emacs-modules</a></a></li>
+<li><a href="https://github.com/jkitchin/emacs-modules">https://github.com/jkitchin/emacs-modules</a></li>
 </ol>
 </div>
 </div>
 </div>
 
-<div id="outline-container-org9534ed4" class="outline-2">
-<h2 id="org9534ed4"><span class="section-number-2">3</span> Go Emacs Module</h2>
+<div id="outline-container-org9689966" class="outline-2">
+<h2 id="org9689966"><span class="section-number-2">3</span> Go Emacs Module</h2>
 <div class="outline-text-2" id="text-3">
 <p>
 We'll now make a similar module, but this time we'll access the Go runtime and
@@ -376,8 +381,8 @@ type conversions but we can for the most part stick to go.
 </p>
 </div>
 
-<div id="outline-container-orgead9075" class="outline-3">
-<h3 id="orgead9075"><span class="section-number-3">3.1</span> <code>src/main.go</code></h3>
+<div id="outline-container-orgf0b19c1" class="outline-3">
+<h3 id="orgf0b19c1"><span class="section-number-3">3.1</span> <code>src/main.go</code></h3>
 <div class="outline-text-3" id="text-3-1">
 <p>
 Create and edit file <code>src/main.go</code>. We'll do a breakdown of this file in the
@@ -463,8 +468,8 @@ next section.
 </div>
 </div>
 </div>
-<div id="outline-container-orga026bff" class="outline-3">
-<h3 id="orga026bff"><span class="section-number-3">3.2</span> Go Breakdown</h3>
+<div id="outline-container-org339e1c4" class="outline-3">
+<h3 id="org339e1c4"><span class="section-number-3">3.2</span> Go Breakdown</h3>
 <div class="outline-text-3" id="text-3-2">
 <p>
 We'll name our package main, even though we are not creating a command module
@@ -645,8 +650,8 @@ stub one out like so.
 </div>
 </div>
 
-<div id="outline-container-orgc31e2ab" class="outline-3">
-<h3 id="orgc31e2ab"><span class="section-number-3">3.3</span> Building the Go module</h3>
+<div id="outline-container-org199e304" class="outline-3">
+<h3 id="org199e304"><span class="section-number-3">3.3</span> Building the Go module</h3>
 <div class="outline-text-3" id="text-3-3">
 <p>
 We export our include flags and then manually build our so file.
@@ -657,8 +662,8 @@ We export our include flags and then manually build our so file.
 </div>
 </div>
 </div>
-<div id="outline-container-org4c743a5" class="outline-3">
-<h3 id="org4c743a5"><span class="section-number-3">3.4</span> Test the Go module</h3>
+<div id="outline-container-org9656936" class="outline-3">
+<h3 id="org9656936"><span class="section-number-3">3.4</span> Test the Go module</h3>
 <div class="outline-text-3" id="text-3-4">
 <div class="org-src-container">
 <pre class="src src-bash">emacs -Q -L ./lib -batch -l <span class="org-string">"gmodule"</span> --eval <span class="org-string">'(message (go-version))'</span>
@@ -673,8 +678,8 @@ go1.9
 </div>
 </div>
 
-<div id="outline-container-orga0f31af" class="outline-2">
-<h2 id="orga0f31af"><span class="section-number-2">4</span> Automating this guide.</h2>
+<div id="outline-container-orgf6f1cbd" class="outline-2">
+<h2 id="orgf6f1cbd"><span class="section-number-2">4</span> Automating this guide.</h2>
 <div class="outline-text-2" id="text-4">
 <p>
 This whole guide can be run without any manual input using.
@@ -685,11 +690,12 @@ This whole guide can be run without any manual input using.
 </pre>
 </div>
 </div>
-<div id="outline-container-org6b9a92a" class="outline-2">
-<h2 id="org6b9a92a"><span class="section-number-2">5</span> Todo's</h2>
+<div id="outline-container-org3f459d8" class="outline-2">
+<h2 id="org3f459d8"><span class="section-number-2">5</span> Todo's</h2>
 <div class="outline-text-2" id="text-5">
-</div><div id="outline-container-org68d08e5" class="outline-3">
-<h3 id="org68d08e5"><span class="section-number-3">5.1</span> <span class="done DONE">DONE</span> emacs-module.h</h3>
+</div>
+<div id="outline-container-orgcf087ca" class="outline-3">
+<h3 id="orgcf087ca"><span class="section-number-3">5.1</span> <span class="done DONE">DONE</span> emacs-module.h</h3>
 <div class="outline-text-3" id="text-5-1">
 <p>
 The emacs tarball is pretty large. figure out how we can download the header
@@ -697,8 +703,8 @@ file and still be GPL compliant.
 </p>
 </div>
 </div>
-<div id="outline-container-org0212447" class="outline-3">
-<h3 id="org0212447"><span class="section-number-3">5.2</span> <span class="todo TODO">TODO</span> GPL compliance</h3>
+<div id="outline-container-org31ecf9e" class="outline-3">
+<h3 id="org31ecf9e"><span class="section-number-3">5.2</span> <span class="todo TODO">TODO</span> GPL compliance</h3>
 <div class="outline-text-3" id="text-5-2">
 <p>
 Find out what GPL implications might arise from writing packages in Go. Go uses
@@ -710,7 +716,7 @@ or not.
 </div>
 </div>
 <div id="postamble" class="status">
-<p class="date">Created: 2017-09-07 Thu 02:05</p>
+<p class="date">Created: 2017-11-06 Mon 19:54</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>
